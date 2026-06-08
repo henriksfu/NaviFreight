@@ -1,0 +1,230 @@
+<section class="page">
+  <header class="page-header">
+    <div class="breadcrumb">
+      <a class="back-link" routerLink="/yards">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        All yards
+      </a>
+      @if (yard()) {
+        <span class="sep">/</span>
+        <span class="page-title">{{ yard()!.yardName }}</span>
+      }
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner" role="alert">{{ error() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-row">
+      <span class="spinner" aria-label="Loading"></span>
+      Loading yard details…
+    </div>
+  } @else if (yard()) {
+    <!-- ── Yard summary card ────────────────── -->
+    <div class="yard-summary">
+      <div class="summary-left">
+        <div class="summary-kicker">Yard overview</div>
+        <h2>{{ yard()!.yardName }}</h2>
+        <div class="summary-meta">
+          <span>Capacity: <strong>{{ yard()!.capacity }}</strong></span>
+          <span>Occupied: <strong>{{ yard()!.occupiedSlots }}</strong></span>
+          <span>Inbound queue: <strong>{{ yard()!.inboundQueue }}</strong></span>
+          <span>Avg turn: <strong>{{ yard()!.averageTurnMinutes }} min</strong></span>
+          <span>Docks: <strong>{{ yard()!.availableDocks }}/{{ yard()!.totalDocks }} available</strong></span>
+        </div>
+      </div>
+      <div class="summary-right">
+        @if (!showOpForm() && isDispatch()) {
+          <button class="btn btn-ghost btn-sm" (click)="openOpForm()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Operations
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (showOpForm()) {
+      <div class="inline-form op-form">
+        <p class="form-title">Operational Update</p>
+        <div class="form-row">
+          <div class="field field-sm">
+            <label>Occupied slots</label>
+            <input type="number" [(ngModel)]="opOccupied" min="0" />
+          </div>
+          <div class="field field-sm">
+            <label>Inbound queue</label>
+            <input type="number" [(ngModel)]="opInbound" min="0" />
+          </div>
+          <div class="field field-sm">
+            <label>Avg turn (min)</label>
+            <input type="number" [(ngModel)]="opTurn" min="0" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-sm" (click)="submitOp()" [disabled]="isSavingOp()">
+            {{ isSavingOp() ? 'Saving…' : 'Apply' }}
+          </button>
+          <button class="btn btn-ghost btn-sm" (click)="cancelOp()">Cancel</button>
+        </div>
+      </div>
+    }
+
+    <!-- ── Docks section ───────────────────── -->
+    <div class="section-header">
+      <h3>Docks</h3>
+      @if (isAdmin()) {
+        <button class="btn btn-primary btn-sm" (click)="openCreateDock()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Dock
+        </button>
+      }
+    </div>
+
+    @if (showCreateDock()) {
+      <div class="inline-form dock-form">
+        <p class="form-title">New Dock</p>
+        @if (dockFormError()) {
+          <p class="field-error">{{ dockFormError() }}</p>
+        }
+        <div class="form-row">
+          <div class="field">
+            <label>Dock code</label>
+            <input type="text" [(ngModel)]="newDockCode" placeholder="e.g. D-01" />
+          </div>
+          <div class="field field-sm">
+            <label>Status</label>
+            <select [(ngModel)]="newDockStatus">
+              @for (s of dockStatuses; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-sm" (click)="submitCreateDock()" [disabled]="isSavingDock()">
+            {{ isSavingDock() ? 'Creating…' : 'Create Dock' }}
+          </button>
+          <button class="btn btn-ghost btn-sm" (click)="cancelCreateDock()">Cancel</button>
+        </div>
+      </div>
+    }
+
+    @if (docks().length === 0) {
+      <p class="empty-state">No docks for this yard yet.@if (isAdmin()) { Add the first one above. }</p>
+    } @else {
+      <div class="dock-table-wrap">
+        <table class="dock-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Status</th>
+              <th>Occupying vehicle</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (dock of docks(); track trackByDockId($index, dock)) {
+              <tr>
+                @if (editingDockId() === dock.dockId) {
+                  <!-- ── Inline edit row ─── -->
+                  <td colspan="4" class="edit-cell">
+                    <div class="form-row">
+                      <div class="field">
+                        <label>Code</label>
+                        <input type="text" [(ngModel)]="editDockCode" />
+                      </div>
+                      <div class="field field-sm">
+                        <label>Status</label>
+                        <select [(ngModel)]="editDockStatus">
+                          @for (s of dockStatuses; track s) {
+                            <option [value]="s">{{ s }}</option>
+                          }
+                        </select>
+                      </div>
+                      <div class="field">
+                        <label>Notes</label>
+                        <input type="text" [(ngModel)]="editDockNotes" placeholder="Optional" />
+                      </div>
+                    </div>
+                  </td>
+                  <td class="actions-cell">
+                    <button class="btn btn-primary btn-xs" (click)="submitEditDock(dock.dockId)" [disabled]="isSavingDockEdit()">
+                      {{ isSavingDockEdit() ? '…' : 'Save' }}
+                    </button>
+                    <button class="btn btn-ghost btn-xs" (click)="cancelEditDock()">Cancel</button>
+                  </td>
+                } @else if (assigningDockId() === dock.dockId) {
+                  <!-- ── Assign vehicle row ─── -->
+                  <td colspan="4" class="edit-cell">
+                    @if (assignError()) {
+                      <p class="field-error" style="margin:0 0 0.4rem">{{ assignError() }}</p>
+                    }
+                    <div class="form-row">
+                      <div class="field">
+                        <label>Vehicle ID</label>
+                        <input type="text" [(ngModel)]="assignVehicleId" placeholder="e.g. VH-001" />
+                      </div>
+                    </div>
+                  </td>
+                  <td class="actions-cell">
+                    <button class="btn btn-primary btn-xs" (click)="submitAssign(dock.dockId)" [disabled]="isSavingAssign()">
+                      {{ isSavingAssign() ? '…' : 'Assign' }}
+                    </button>
+                    <button class="btn btn-ghost btn-xs" (click)="cancelAssign()">Cancel</button>
+                  </td>
+                } @else {
+                  <!-- ── Normal row ─── -->
+                  <td class="code-cell">{{ dock.dockCode }}</td>
+                  <td>
+                    <span class="status-badge" [ngClass]="statusClass(dock.status)">{{ dock.status }}</span>
+                  </td>
+                  <td class="vehicle-cell">
+                    @if (dock.occupyingVehicleId) {
+                      <span class="vehicle-tag">{{ dock.occupyingVehicleId }}</span>
+                    } @else {
+                      <span class="empty-cell">—</span>
+                    }
+                  </td>
+                  <td class="notes-cell">
+                    @if (dock.notes) {
+                      {{ dock.notes }}
+                    } @else {
+                      <span class="empty-cell">—</span>
+                    }
+                  </td>
+                  <td class="actions-cell">
+                    @if (isDispatch()) {
+                      @if (dock.status === 'Available') {
+                        <button class="btn btn-ghost btn-xs" (click)="openAssign(dock.dockId)" title="Assign vehicle">
+                          Assign
+                        </button>
+                      }
+                      @if (dock.status === 'Occupied') {
+                        <button class="btn btn-ghost btn-xs"
+                                (click)="releaseDock(dock.dockId)"
+                                [disabled]="releasingDockId() === dock.dockId">
+                          {{ releasingDockId() === dock.dockId ? '…' : 'Release' }}
+                        </button>
+                      }
+                    }
+                    @if (isAdmin()) {
+                      <button class="btn btn-ghost btn-xs" (click)="openEditDock(dock)">Edit</button>
+                      <button class="btn btn-danger-ghost btn-xs"
+                              (click)="deleteDock(dock.dockId)"
+                              [disabled]="deletingDockId() === dock.dockId">
+                        {{ deletingDockId() === dock.dockId ? '…' : 'Delete' }}
+                      </button>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</section>

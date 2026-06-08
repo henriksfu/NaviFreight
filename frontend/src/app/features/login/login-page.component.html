@@ -1,0 +1,66 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none">
+          <path d="M4 9h14M4 16h22M4 23h10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          <circle cx="24" cy="9" r="3.2" fill="currentColor" />
+        </svg>
+      </div>
+      <div>
+        <h1>NaviFreight</h1>
+        <p class="login-sub">Enterprise Command</p>
+      </div>
+    </div>
+
+    <form class="login-form" (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      <div class="field">
+        <label for="email">Email address</label>
+        <input
+          id="email"
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          autocomplete="username"
+          placeholder="you@company.example"
+          required />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          autocomplete="current-password"
+          placeholder="••••••••"
+          required />
+      </div>
+
+      @if (error()) {
+        <div class="error-banner" role="alert">{{ error() }}</div>
+      }
+
+      <button type="submit" class="login-btn" [disabled]="isLoading()">
+        {{ isLoading() ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </form>
+
+    <div class="demo-panel">
+      <div class="demo-kicker">Demo credentials</div>
+      <div class="demo-row">
+        <span class="demo-role">Tenant Admin</span>
+        <code>morgan.ellis&#64;atlasmeridian.example&nbsp;/&nbsp;demo&#64;Admin1</code>
+      </div>
+      <div class="demo-row">
+        <span class="demo-role">Dispatcher</span>
+        <code>priya.shah&#64;atlasmeridian.example&nbsp;/&nbsp;demo&#64;Disp1</code>
+      </div>
+      <div class="demo-row">
+        <span class="demo-role">Yard Manager</span>
+        <code>darius.cole&#64;atlasmeridian.example&nbsp;/&nbsp;demo&#64;Yard1</code>
+      </div>
+    </div>
+  </div>
+</div>

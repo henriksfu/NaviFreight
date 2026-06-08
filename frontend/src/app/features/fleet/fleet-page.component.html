@@ -1,0 +1,307 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="page-kicker">Fleet Operations</p>
+      <h2>Vehicle command board</h2>
+    </div>
+    <div class="header-right">
+      <div class="metric-strip">
+        <div class="metric-block">
+          <span>Tracked assets</span>
+          <strong>{{ vehicles().length }}</strong>
+        </div>
+        <div class="metric-block">
+          <span>Average utilization</span>
+          <strong>{{ averageUtilization() }}%</strong>
+        </div>
+      </div>
+      @if (isDispatch()) {
+        @if (activeTab() === 'vehicles') {
+          <button class="btn btn-primary btn-sm" (click)="openCreateVehicle()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Vehicle
+          </button>
+        } @else {
+          <button class="btn btn-primary btn-sm" (click)="openCreateDriver()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Driver
+          </button>
+        }
+      }
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner" role="alert">{{ error() }}</div>
+  }
+
+  <div class="tab-bar">
+    <button class="tab-btn" [class.active]="activeTab() === 'vehicles'" (click)="switchTab('vehicles')">Vehicles</button>
+    <button class="tab-btn" [class.active]="activeTab() === 'drivers'" (click)="switchTab('drivers')">Drivers</button>
+  </div>
+
+  <!-- ══ Vehicles tab ════════════════════════════════════════════════════════ -->
+  @if (activeTab() === 'vehicles') {
+
+    @if (showCreateVehicle()) {
+      <div class="inline-form">
+        <p class="form-title">Add Vehicle</p>
+        @if (vehicleFormError()) {
+          <p class="field-error">{{ vehicleFormError() }}</p>
+        }
+        <div class="form-row">
+          <div class="field">
+            <label>Vehicle ID</label>
+            <input type="text" [(ngModel)]="newVehicleId" placeholder="e.g. VH-101" />
+          </div>
+          <div class="field field-sm">
+            <label>Status</label>
+            <select [(ngModel)]="newVehicleStatus">
+              @for (s of vehicleStatuses; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+          </div>
+          <div class="field field-xs">
+            <label>Utilization %</label>
+            <input type="number" [(ngModel)]="newVehicleUtil" min="0" max="100" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-sm" (click)="submitCreateVehicle()" [disabled]="isSavingVehicle()">
+            {{ isSavingVehicle() ? 'Creating…' : 'Create' }}
+          </button>
+          <button class="btn btn-ghost btn-sm" (click)="cancelCreateVehicle()">Cancel</button>
+        </div>
+      </div>
+    }
+
+    @if (isLoadingVehicles()) {
+      <div class="loading-row">
+        <span class="spinner" aria-label="Loading"></span>
+        Loading fleet…
+      </div>
+    } @else if (vehicles().length === 0) {
+      <p class="empty-state">No vehicles found.</p>
+    } @else {
+      <section class="fleet-grid">
+        @for (vehicle of vehicles(); track trackByVehicleId($index, vehicle)) {
+          <article class="fleet-card">
+
+            @if (editingVehicleId() === vehicle.vehicleId) {
+              <!-- ── Edit form ─── -->
+              <div class="card-form">
+                <h3 style="margin-bottom:0.85rem">Edit {{ vehicle.vehicleId }}</h3>
+                <div class="form-row">
+                  <div class="field">
+                    <label>Status</label>
+                    <select [(ngModel)]="editVehicleStatus">
+                      @for (s of vehicleStatuses; track s) {
+                        <option [value]="s">{{ s }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="field field-xs">
+                    <label>Utilization %</label>
+                    <input type="number" [(ngModel)]="editVehicleUtil" min="0" max="100" />
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button class="btn btn-primary btn-sm" (click)="submitEditVehicle(vehicle.vehicleId)"
+                          [disabled]="isSavingVehicleEdit()">
+                    {{ isSavingVehicleEdit() ? '…' : 'Save' }}
+                  </button>
+                  <button class="btn btn-ghost btn-sm" (click)="cancelEditVehicle()">Cancel</button>
+                </div>
+              </div>
+
+            } @else if (assigningDriverVehicleId() === vehicle.vehicleId) {
+              <!-- ── Assign driver form ─── -->
+              <div class="card-form">
+                <h3 style="margin-bottom:0.85rem">Assign Driver — {{ vehicle.vehicleId }}</h3>
+                @if (assignError()) {
+                  <p class="field-error">{{ assignError() }}</p>
+                }
+                <div class="form-row">
+                  <div class="field">
+                    <label>Driver ID</label>
+                    <input type="number" [(ngModel)]="assignDriverId" placeholder="Numeric driver ID" />
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button class="btn btn-primary btn-sm" (click)="submitAssignDriver(vehicle.vehicleId)"
+                          [disabled]="isSavingAssign()">
+                    {{ isSavingAssign() ? '…' : 'Assign' }}
+                  </button>
+                  <button class="btn btn-ghost btn-sm" (click)="cancelAssignDriver()">Cancel</button>
+                </div>
+              </div>
+
+            } @else {
+              <!-- ── Card view ─── -->
+              <div class="fleet-card-top">
+                <div>
+                  <p class="route-code">{{ vehicle.routeCode || '—' }}</p>
+                  <h3>{{ vehicle.vehicleId }}</h3>
+                </div>
+                <span class="status-chip" [ngClass]="statusClass(vehicle.status)">{{ vehicle.status }}</span>
+              </div>
+
+              <dl class="fleet-meta">
+                <div><dt>Driver</dt><dd>{{ vehicle.driverName || 'Unassigned' }}</dd></div>
+                <div><dt>Yard</dt><dd>{{ vehicle.currentYard || '—' }}</dd></div>
+                <div><dt>ETA</dt><dd>{{ formatDate(vehicle.etaUtc) }}</dd></div>
+                <div><dt>Updated</dt><dd>{{ formatDate(vehicle.lastUpdatedUtc) }}</dd></div>
+              </dl>
+
+              <div class="utilization">
+                <div class="utilization-label">
+                  <span>Utilization</span>
+                  <strong>{{ vehicle.utilizationPercent }}%</strong>
+                </div>
+                <div class="track">
+                  <span class="track-fill" [style.width.%]="vehicle.utilizationPercent"
+                        [class.fill-hi]="vehicle.utilizationPercent >= 85"></span>
+                </div>
+              </div>
+
+              @if (isDispatch()) {
+                <div class="card-actions">
+                  <button class="btn btn-ghost btn-xs" (click)="openEditVehicle(vehicle)">Edit</button>
+                  <button class="btn btn-ghost btn-xs" (click)="openAssignDriver(vehicle.vehicleId)">
+                    {{ vehicle.driverName ? 'Change driver' : 'Assign driver' }}
+                  </button>
+                  @if (vehicle.driverName) {
+                    <button class="btn btn-ghost btn-xs" (click)="unassignDriver(vehicle.vehicleId)">
+                      Unassign driver
+                    </button>
+                  }
+                  <button class="btn btn-danger-ghost btn-xs"
+                          (click)="deleteVehicle(vehicle.vehicleId)"
+                          [disabled]="deletingVehicleId() === vehicle.vehicleId">
+                    {{ deletingVehicleId() === vehicle.vehicleId ? '…' : 'Delete' }}
+                  </button>
+                </div>
+              }
+            }
+
+          </article>
+        }
+      </section>
+    }
+  }
+
+  <!-- ══ Drivers tab ═════════════════════════════════════════════════════════ -->
+  @if (activeTab() === 'drivers') {
+
+    @if (showCreateDriver()) {
+      <div class="inline-form">
+        <p class="form-title">Add Driver</p>
+        @if (driverFormError()) {
+          <p class="field-error">{{ driverFormError() }}</p>
+        }
+        <div class="form-row">
+          <div class="field">
+            <label>Full name</label>
+            <input type="text" [(ngModel)]="newDriverName" placeholder="e.g. Jordan Lee" />
+          </div>
+          <div class="field">
+            <label>License number</label>
+            <input type="text" [(ngModel)]="newDriverLicense" placeholder="e.g. DL-98234" />
+          </div>
+          <div class="field field-sm">
+            <label>Availability</label>
+            <select [(ngModel)]="newDriverStatus">
+              @for (s of driverStatuses; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-sm" (click)="submitCreateDriver()" [disabled]="isSavingDriver()">
+            {{ isSavingDriver() ? 'Creating…' : 'Create' }}
+          </button>
+          <button class="btn btn-ghost btn-sm" (click)="cancelCreateDriver()">Cancel</button>
+        </div>
+      </div>
+    }
+
+    @if (isLoadingDrivers()) {
+      <div class="loading-row">
+        <span class="spinner" aria-label="Loading"></span>
+        Loading drivers…
+      </div>
+    } @else if (drivers().length === 0 && driversLoaded()) {
+      <p class="empty-state">No drivers found.</p>
+    } @else {
+      <div class="driver-table-wrap">
+        <table class="driver-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>License</th>
+              <th>Availability</th>
+              <th>Assigned vehicle</th>
+              @if (isDispatch()) { <th>Actions</th> }
+            </tr>
+          </thead>
+          <tbody>
+            @for (driver of drivers(); track trackByDriverId($index, driver)) {
+              <tr>
+                @if (editingDriverId() === driver.driverId) {
+                  <td colspan="4" class="edit-cell">
+                    <div class="form-row">
+                      <div class="field">
+                        <label>Name</label>
+                        <input type="text" [(ngModel)]="editDriverName" />
+                      </div>
+                      <div class="field">
+                        <label>License</label>
+                        <input type="text" [(ngModel)]="editDriverLicense" />
+                      </div>
+                      <div class="field field-sm">
+                        <label>Availability</label>
+                        <select [(ngModel)]="editDriverStatus">
+                          @for (s of driverStatuses; track s) {
+                            <option [value]="s">{{ s }}</option>
+                          }
+                        </select>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="actions-cell">
+                    <button class="btn btn-primary btn-xs" (click)="submitEditDriver(driver.driverId)"
+                            [disabled]="isSavingDriverEdit()">
+                      {{ isSavingDriverEdit() ? '…' : 'Save' }}
+                    </button>
+                    <button class="btn btn-ghost btn-xs" (click)="cancelEditDriver()">Cancel</button>
+                  </td>
+                } @else {
+                  <td class="name-cell">{{ driver.fullName }}</td>
+                  <td class="mono-cell">{{ driver.licenseNumber }}</td>
+                  <td>
+                    <span class="avail-badge" [ngClass]="driverStatusClass(driver.availabilityStatus)">
+                      {{ driver.availabilityStatus }}
+                    </span>
+                  </td>
+                  <td class="mono-cell">{{ driver.assignedVehicleId ?? '—' }}</td>
+                  @if (isDispatch()) {
+                    <td class="actions-cell">
+                      <button class="btn btn-ghost btn-xs" (click)="openEditDriver(driver)">Edit</button>
+                      <button class="btn btn-danger-ghost btn-xs"
+                              (click)="deleteDriver(driver.driverId)"
+                              [disabled]="deletingDriverId() === driver.driverId">
+                        {{ deletingDriverId() === driver.driverId ? '…' : 'Delete' }}
+                      </button>
+                    </td>
+                  }
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</section>

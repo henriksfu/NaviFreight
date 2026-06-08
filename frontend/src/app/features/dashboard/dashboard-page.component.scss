@@ -1,0 +1,434 @@
+.page {
+  padding: 1.75rem 2rem 2.5rem;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.page-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 0.4rem;
+}
+
+h2 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--text-1);
+  margin: 0;
+}
+
+.page-copy {
+  max-width: 44rem;
+  margin-top: 0.6rem;
+  color: var(--text-2);
+  font-size: 0.875rem;
+}
+
+/* ── KPI band ─────────────────────────────── */
+
+.kpi-band {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Content grid ─────────────────────────── */
+
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(20rem, 0.9fr);
+  gap: 1rem;
+}
+
+/* ── Panel ───────────────────────────────── */
+
+.panel {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  background: var(--surf);
+  border-radius: 2px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.panel-sub {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-3);
+  margin-top: 0.25rem;
+}
+
+.live-badge {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--success);
+  background: var(--success-bg);
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+}
+
+/* ── Fleet table ─────────────────────────── */
+
+.fleet-table {
+  display: grid;
+  gap: 0;
+}
+
+.fleet-thead,
+.fleet-row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1.1fr 1.1fr 0.8fr 0.8fr;
+  gap: 0.5rem;
+  padding: 0.7rem 0.6rem;
+}
+
+.fleet-thead {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.fleet-row {
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  transition: background 80ms;
+}
+
+.fleet-row:hover {
+  background: var(--surf-raised);
+}
+
+.fleet-row:last-child {
+  border-bottom: 0;
+}
+
+.f-id {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+/* ── Status chips ────────────────────────── */
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  border-radius: 2px;
+  background: var(--surf-raised);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.s-in-transit       { background: var(--info-bg);    color: var(--info); }
+.s-at-dock          { background: var(--success-bg);  color: var(--success); }
+.s-awaiting-dispatch { background: var(--warn-bg);    color: var(--warn); }
+.s-delayed          { background: var(--danger-bg);   color: var(--danger); }
+
+/* ── Right column ────────────────────────── */
+
+.col-right {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+/* ── Yard list ───────────────────────────── */
+
+.yard-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.yard-item {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--surf-raised);
+}
+
+.yard-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.yard-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.yard-count {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.yard-track {
+  height: 5px;
+  margin: 0.65rem 0 0.5rem;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.yard-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 400ms ease;
+}
+
+.fill-ok  { background: var(--success); }
+.fill-mid { background: var(--warn); }
+.fill-hi  { background: var(--danger); }
+
+.yard-meta {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-3);
+}
+
+/* ── Timeline ────────────────────────────── */
+
+.timeline {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0;
+}
+
+.tl-item {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+  align-items: start;
+}
+
+.tl-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.tl-time {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-3);
+  padding-top: 0.15rem;
+}
+
+.tl-event {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.tl-desc {
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  color: var(--text-2);
+}
+
+/* ── Error / loading ─────────────────────── */
+
+.error-banner {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 20%, transparent);
+  border-radius: 3px;
+  font-size: 0.875rem;
+}
+
+.loading-band {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-3);
+  font-size: 0.875rem;
+  padding: 3rem 0;
+}
+
+.spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.panel-empty {
+  color: var(--text-3);
+  font-size: 0.875rem;
+  padding: 1rem 0 0.5rem;
+}
+
+.all-clear {
+  color: var(--success, #059669);
+}
+
+/* ── Active alerts feed ───────────────────── */
+
+.alert-count-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--danger-bg);
+  color: var(--danger);
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.alert-feed {
+  display: grid;
+  gap: 0;
+}
+
+.alert-feed-row {
+  display: grid;
+  grid-template-columns: 0.6rem minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+
+  &:last-child { border-bottom: 0; padding-bottom: 0; }
+}
+
+.sev-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 0.35rem;
+  flex-shrink: 0;
+  background: var(--text-3);
+
+  &.sev-critical { background: var(--danger); }
+  &.sev-warning  { background: var(--warn); }
+  &.sev-info     { background: var(--info); }
+}
+
+.alert-feed-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.alert-feed-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.alert-feed-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.alert-feed-owner {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+.alert-feed-desc {
+  font-size: 0.78rem;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+
+.sev-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.4rem;
+  border-radius: 2px;
+  flex-shrink: 0;
+  background: var(--surf-raised);
+  color: var(--text-3);
+
+  &.sev-critical { background: var(--danger-bg); color: var(--danger); }
+  &.sev-warning  { background: var(--warn-bg); color: var(--warn); }
+  &.sev-info     { background: var(--info-bg); color: var(--info); }
+}
+
+/* ── Responsive ──────────────────────────── */
+
+@media (max-width: 1280px) {
+  .kpi-band {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 1.25rem;
+  }
+
+  .kpi-band {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fleet-thead {
+    display: none;
+  }
+
+  .fleet-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

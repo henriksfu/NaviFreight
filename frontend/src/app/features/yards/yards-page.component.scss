@@ -1,0 +1,331 @@
+.page {
+  padding: 1.75rem 2rem 2.5rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.page-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin: 0 0 0.4rem;
+}
+
+h2 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ── Error / loading ──────────────────── */
+
+.error-banner {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 20%, transparent);
+  border-radius: 3px;
+  font-size: 0.875rem;
+}
+
+.loading-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-3);
+  font-size: 0.875rem;
+  padding: 2rem 0;
+}
+
+.spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state {
+  color: var(--text-3);
+  font-size: 0.875rem;
+  grid-column: 1 / -1;
+  padding: 2rem 0;
+}
+
+/* ── Inline form ──────────────────────── */
+
+.inline-form {
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  background: var(--surf-raised);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.form-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+}
+
+.field-error {
+  font-size: 0.8rem;
+  color: var(--danger);
+  margin: 0 0 0.75rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 10rem;
+}
+
+.field-sm {
+  flex: 0 0 8rem;
+  min-width: 6rem;
+}
+
+.field label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.field input {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surf);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--text-1);
+  outline: none;
+  transition: border-color 100ms;
+
+  &:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* ── Yard grid ────────────────────────── */
+
+.yard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.yard-card {
+  padding: 1.35rem;
+  border: 1px solid var(--border);
+  background: var(--surf);
+  border-radius: 2px;
+  transition: box-shadow 120ms;
+}
+
+.yard-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+}
+
+.card-edit-form {
+  h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+  }
+
+  .field {
+    margin-bottom: 0.75rem;
+  }
+}
+
+.yard-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.yard-slots {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ── Capacity bar ─────────────────────── */
+
+.yard-track {
+  height: 8px;
+  margin: 0 0 1rem;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.yard-track span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), #4a6cf7);
+  transition: width 400ms ease;
+
+  &.track-warn   { background: linear-gradient(90deg, var(--warn), #d97706); }
+  &.track-danger { background: linear-gradient(90deg, var(--danger), #dc2626); }
+}
+
+/* ── Yard stats ───────────────────────── */
+
+.yard-stats {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.yard-stats div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.yard-stats div:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.yard-stats span {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.yard-stats strong {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+/* ── Yard actions ─────────────────────── */
+
+.yard-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Buttons ──────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border-radius: 3px;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 100ms, color 100ms, border-color 100ms;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+.btn-sm {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+
+  &:hover:not(:disabled) { background: #162357; }
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-2);
+  border-color: var(--border);
+
+  &:hover:not(:disabled) {
+    background: var(--surf-raised);
+    color: var(--text-1);
+  }
+}
+
+.btn-danger-ghost {
+  background: transparent;
+  color: var(--text-3);
+  border-color: var(--border);
+
+  &:hover:not(:disabled) {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-color: color-mix(in srgb, var(--danger) 30%, var(--border));
+  }
+}
+
+/* ── Responsive ───────────────────────── */
+
+@media (max-width: 1100px) {
+  .yard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+  .page { padding: 1.25rem; }
+  .yard-grid { grid-template-columns: 1fr; }
+}

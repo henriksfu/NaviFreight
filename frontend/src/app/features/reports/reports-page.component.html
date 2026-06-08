@@ -1,0 +1,18 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="page-kicker">Analytics</p>
+      <h2>Operational reporting snapshots</h2>
+    </div>
+  </header>
+
+  <div class="report-grid">
+    @for (report of dashboard().reports; track report.reportName) {
+      <article class="report-card">
+        <p>{{ report.reportName }}</p>
+        <strong>{{ report.value }}</strong>
+        <span>{{ report.changeLabel }}</span>
+      </article>
+    }
+  </div>
+</section>

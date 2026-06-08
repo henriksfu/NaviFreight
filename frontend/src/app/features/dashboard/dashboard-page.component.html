@@ -1,0 +1,149 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="page-kicker">Operations Overview</p>
+      <h2>Fleet and yard command center</h2>
+      <p class="page-copy">
+        A dense operational snapshot for dispatchers, yard managers, and tenant administrators.
+      </p>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner" role="alert">{{ error() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-band">
+      <span class="spinner" aria-label="Loading dashboard"></span>
+      Loading operational data…
+    </div>
+  } @else {
+
+    <section class="kpi-band" aria-label="Key metrics">
+      @for (card of summaryCards(); track card.label) {
+        <app-kpi-card
+          [label]="card.label"
+          [value]="card.value"
+          [detail]="card.detail"
+          [variant]="card.variant"
+          [trend]="card.trend" />
+      }
+    </section>
+
+    <div class="content-grid">
+
+      <!-- ── Live Fleet Board ───────────────────────── -->
+      <section class="panel" aria-labelledby="fleet-heading">
+        <div class="panel-header">
+          <div>
+            <h3 id="fleet-heading" class="panel-title">Live Fleet Board</h3>
+            <p class="panel-sub">Vehicle activity with route and dispatch status</p>
+          </div>
+          <span class="live-badge">Live</span>
+        </div>
+
+        @if (vehicles().length === 0) {
+          <p class="panel-empty">No vehicles in fleet.</p>
+        } @else {
+          <div class="fleet-table" role="table" aria-label="Fleet activity">
+            <div class="fleet-thead" role="row">
+              <span role="columnheader">Vehicle</span>
+              <span role="columnheader">Driver</span>
+              <span role="columnheader">Status</span>
+              <span role="columnheader">Yard</span>
+              <span role="columnheader">ETA</span>
+              <span role="columnheader">Load</span>
+            </div>
+            @for (vehicle of vehicles(); track vehicle.vehicleId) {
+              <div class="fleet-row" role="row">
+                <span class="f-id" role="cell">{{ vehicle.vehicleId }}</span>
+                <span role="cell">{{ vehicle.driverName || '—' }}</span>
+                <span role="cell">
+                  <span class="status-chip" [ngClass]="statusClass(vehicle.status)">
+                    {{ vehicle.status }}
+                  </span>
+                </span>
+                <span role="cell">{{ vehicle.currentYard || '—' }}</span>
+                <span role="cell">{{ formatEta(vehicle.etaUtc) }}</span>
+                <span role="cell">{{ vehicle.utilizationPercent }}%</span>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <div class="col-right">
+
+        <!-- ── Yard Capacity ─────────────────────────── -->
+        <section class="panel" aria-labelledby="yards-heading">
+          <div class="panel-header">
+            <div>
+              <h3 id="yards-heading" class="panel-title">Yard Capacity</h3>
+              <p class="panel-sub">Occupancy, queue, and dock availability</p>
+            </div>
+          </div>
+
+          @if (yards().length === 0) {
+            <p class="panel-empty">No yards found.</p>
+          } @else {
+            <div class="yard-list">
+              @for (yard of yards(); track yard.yardId) {
+                <div class="yard-item">
+                  <div class="yard-top">
+                    <span class="yard-name">{{ yard.yardName }}</span>
+                    <span class="yard-count">{{ yard.occupiedSlots }}/{{ yard.capacity }}</span>
+                  </div>
+                  <div class="yard-track">
+                    <div
+                      class="yard-fill"
+                      [ngClass]="yardFillClass(yard.occupiedSlots, yard.capacity)"
+                      [style.width.%]="yard.capacity > 0 ? (yard.occupiedSlots / yard.capacity) * 100 : 0"></div>
+                  </div>
+                  <p class="yard-meta">
+                    {{ yard.inboundQueue }} inbound &middot; {{ yard.availableDocks }}/{{ yard.totalDocks }} docks free &middot; {{ yard.averageTurnMinutes }}m avg turn
+                  </p>
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <!-- ── Active Alerts ─────────────────────────── -->
+        <section class="panel" aria-labelledby="alerts-heading">
+          <div class="panel-header">
+            <div>
+              <h3 id="alerts-heading" class="panel-title">Active Alerts</h3>
+              <p class="panel-sub">Unresolved operational exceptions</p>
+            </div>
+            @if (alerts().length > 0) {
+              <span class="alert-count-badge">{{ alerts().length }}</span>
+            }
+          </div>
+
+          @if (alerts().length === 0) {
+            <p class="panel-empty all-clear">All clear — no active alerts.</p>
+          } @else {
+            <div class="alert-feed">
+              @for (alert of alerts(); track alert.alertEventId) {
+                <div class="alert-feed-row" [ngClass]="severityClass(alert.severity)">
+                  <span class="sev-dot" [ngClass]="severityClass(alert.severity)"></span>
+                  <div class="alert-feed-body">
+                    <div class="alert-feed-top">
+                      <span class="alert-feed-title">{{ alert.title }}</span>
+                      <span class="alert-feed-owner">{{ alert.ownerTeam }}</span>
+                    </div>
+                    <span class="alert-feed-desc">{{ alert.description }}</span>
+                  </div>
+                  <span class="sev-label" [ngClass]="severityClass(alert.severity)">{{ alert.severity }}</span>
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+      </div>
+    </div>
+
+  }
+</section>

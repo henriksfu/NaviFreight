@@ -1,0 +1,151 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="page-kicker">Yard Management</p>
+      <h2>Dock and occupancy control</h2>
+    </div>
+    @if (isAdmin()) {
+      <button class="btn btn-primary" (click)="openCreate()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Yard
+      </button>
+    }
+  </header>
+
+  @if (error()) {
+    <div class="error-banner" role="alert">{{ error() }}</div>
+  }
+
+  @if (showCreateForm()) {
+    <div class="inline-form">
+      <h3 class="form-title">New Yard</h3>
+      @if (formError()) {
+        <p class="field-error">{{ formError() }}</p>
+      }
+      <div class="form-row">
+        <div class="field">
+          <label for="createName">Yard name</label>
+          <input id="createName" type="text" [(ngModel)]="createName" placeholder="e.g. Denver South" />
+        </div>
+        <div class="field field-sm">
+          <label for="createCap">Capacity (slots)</label>
+          <input id="createCap" type="number" [(ngModel)]="createCapacity" min="1" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" (click)="submitCreate()" [disabled]="isSaving()">
+          {{ isSaving() ? 'Creating…' : 'Create Yard' }}
+        </button>
+        <button class="btn btn-ghost" (click)="cancelCreate()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-row">
+      <span class="spinner" aria-label="Loading"></span>
+      Loading yards…
+    </div>
+  } @else {
+    <div class="yard-grid">
+      @for (yard of yards(); track trackByYardId($index, yard)) {
+        <article class="yard-card">
+
+          @if (editingYardId() === yard.yardId) {
+            <!-- ── Edit form ─── -->
+            <div class="card-edit-form">
+              <h4>Edit Yard</h4>
+              @if (formError()) {
+                <p class="field-error">{{ formError() }}</p>
+              }
+              <div class="field">
+                <label>Name</label>
+                <input type="text" [(ngModel)]="editName" />
+              </div>
+              <div class="field">
+                <label>Capacity</label>
+                <input type="number" [(ngModel)]="editCapacity" min="1" />
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary btn-sm" (click)="submitEdit(yard.yardId)" [disabled]="isSaving()">Save</button>
+                <button class="btn btn-ghost btn-sm" (click)="cancelEdit()">Cancel</button>
+              </div>
+            </div>
+
+          } @else if (updatingYardId() === yard.yardId) {
+            <!-- ── Operational update form ─── -->
+            <div class="card-edit-form">
+              <h4>Operational Update — {{ yard.yardName }}</h4>
+              <div class="form-row">
+                <div class="field field-sm">
+                  <label>Occupied slots</label>
+                  <input type="number" [(ngModel)]="opOccupied" min="0" />
+                </div>
+                <div class="field field-sm">
+                  <label>Inbound queue</label>
+                  <input type="number" [(ngModel)]="opInbound" min="0" />
+                </div>
+                <div class="field field-sm">
+                  <label>Avg turn (min)</label>
+                  <input type="number" [(ngModel)]="opTurn" min="0" />
+                </div>
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary btn-sm" (click)="submitOperational(yard.yardId)" [disabled]="isSaving()">Apply</button>
+                <button class="btn btn-ghost btn-sm" (click)="cancelOp()">Cancel</button>
+              </div>
+            </div>
+
+          } @else {
+            <!-- ── Card view ─── -->
+            <div class="yard-card-top">
+              <h3>{{ yard.yardName }}</h3>
+              <strong class="yard-slots">{{ yard.occupiedSlots }}/{{ yard.capacity }}</strong>
+            </div>
+
+            <div class="yard-track">
+              <span [style.width.%]="occupancyPct(yard)"
+                    [class.track-warn]="occupancyPct(yard) >= 85"
+                    [class.track-danger]="occupancyPct(yard) >= 95"></span>
+            </div>
+
+            <div class="yard-stats">
+              <div><span>Inbound queue</span><strong>{{ yard.inboundQueue }}</strong></div>
+              <div><span>Available docks</span><strong>{{ yard.availableDocks }}/{{ yard.totalDocks }}</strong></div>
+              <div><span>Average turn</span><strong>{{ yard.averageTurnMinutes }} min</strong></div>
+            </div>
+
+            <div class="yard-actions">
+              <a class="btn btn-ghost btn-sm" [routerLink]="['/yards', yard.yardId]">
+                Manage docks
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              @if (isDispatch()) {
+                <button class="btn btn-ghost btn-sm" (click)="openOperational(yard)" title="Update operational values">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                  Operations
+                </button>
+              }
+              @if (isAdmin()) {
+                <button class="btn btn-ghost btn-sm" (click)="openEdit(yard)" title="Edit yard">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Edit
+                </button>
+                <button class="btn btn-danger-ghost btn-sm"
+                        (click)="deleteYard(yard.yardId)"
+                        [disabled]="deletingYardId() === yard.yardId">
+                  {{ deletingYardId() === yard.yardId ? '…' : 'Delete' }}
+                </button>
+              }
+            </div>
+          }
+
+        </article>
+      }
+
+      @if (yards().length === 0) {
+        <p class="empty-state">No yards found. Create the first one.</p>
+      }
+    </div>
+  }
+</section>

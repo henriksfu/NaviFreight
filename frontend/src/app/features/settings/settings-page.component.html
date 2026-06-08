@@ -1,0 +1,21 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="page-kicker">Administration</p>
+      <h2>Tenant and dispatch settings</h2>
+    </div>
+  </header>
+
+  <div class="settings-grid">
+    @for (section of dashboard().settings; track section.title) {
+      <article class="settings-card">
+        <h3>{{ section.title }}</h3>
+        <ul>
+          @for (item of section.items; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      </article>
+    }
+  </div>
+</section>

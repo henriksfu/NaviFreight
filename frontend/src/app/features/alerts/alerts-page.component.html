@@ -1,0 +1,186 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="page-kicker">Alerts</p>
+      <h2>Operational exception queue</h2>
+    </div>
+    <div class="header-right">
+      <span class="alert-count">{{ activeCount() }} active</span>
+      @if (isDispatch()) {
+        <button class="btn btn-primary btn-sm" (click)="openCreate()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Alert
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner" role="alert">{{ error() }}</div>
+  }
+
+  <!-- ── Filter bar ───────────────────────── -->
+  <div class="filter-bar">
+    <div class="status-tabs">
+      @for (s of statusTabs; track s) {
+        <button class="tab-btn" [class.active]="statusFilter() === s" (click)="setStatus(s)">{{ s }}</button>
+      }
+    </div>
+    <div class="severity-filters">
+      @for (s of severityOptions; track s) {
+        <button class="sev-filter-btn" [class.active]="severityFilter() === s"
+                [ngClass]="s !== 'All' ? severityClass(s) : ''"
+                (click)="setSeverity(s)">{{ s }}</button>
+      }
+    </div>
+  </div>
+
+  @if (showCreateForm()) {
+    <div class="inline-form">
+      <p class="form-title">New Alert</p>
+      @if (formError()) {
+        <p class="field-error">{{ formError() }}</p>
+      }
+      <div class="form-row">
+        <div class="field field-sm">
+          <label>Severity</label>
+          <select [(ngModel)]="createSeverity">
+            @for (s of severities; track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label>Title</label>
+          <input type="text" [(ngModel)]="createTitle" placeholder="Brief alert title" />
+        </div>
+        <div class="field">
+          <label>Owner team</label>
+          <input type="text" [(ngModel)]="createOwner" placeholder="e.g. Dispatch" />
+        </div>
+      </div>
+      <div class="field" style="margin-top:0.75rem">
+        <label>Description</label>
+        <textarea [(ngModel)]="createDescription" placeholder="Describe the exception in detail" rows="2"></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary btn-sm" (click)="submitCreate()" [disabled]="isSaving()">
+          {{ isSaving() ? 'Creating…' : 'Create Alert' }}
+        </button>
+        <button class="btn btn-ghost btn-sm" (click)="cancelCreate()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-row">
+      <span class="spinner" aria-label="Loading"></span>
+      Loading alerts…
+    </div>
+  } @else if (filteredAlerts().length === 0) {
+    <p class="empty-state">No alerts match the current filters.</p>
+  } @else {
+    <div class="alert-list">
+      @for (alert of filteredAlerts(); track trackById($index, alert)) {
+        <article class="alert-card" [ngClass]="severityClass(alert.severity)">
+
+          <div class="alert-top">
+            <div class="alert-left">
+              <span class="severity-badge" [ngClass]="severityClass(alert.severity)">{{ alert.severity }}</span>
+              <span class="status-badge" [ngClass]="statusClass(alert.status)">{{ alert.status }}</span>
+              <strong class="alert-title">{{ alert.title }}</strong>
+            </div>
+            <span class="owner-tag">{{ alert.ownerTeam }}</span>
+          </div>
+
+          <p class="alert-desc">{{ alert.description }}</p>
+
+          <div class="alert-meta">
+            <span>Created {{ formatDate(alert.createdUtc) }}</span>
+            @if (alert.acknowledgedByEmail) {
+              <span>· Ack'd by {{ alert.acknowledgedByEmail }}</span>
+            }
+            @if (alert.resolvedByEmail) {
+              <span>· Resolved by {{ alert.resolvedByEmail }}</span>
+            }
+            @if (alert.resolutionNotes) {
+              <span class="resolution-notes">{{ alert.resolutionNotes }}</span>
+            }
+          </div>
+
+          <!-- ── Resolve panel ─── -->
+          @if (resolvingAlertId() === alert.alertEventId) {
+            <div class="action-panel">
+              <div class="form-row">
+                <div class="field">
+                  <label>Resolution notes (optional)</label>
+                  <input type="text" [(ngModel)]="resolveNotes" placeholder="What was done to resolve?" />
+                </div>
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary btn-sm" (click)="submitResolve(alert.alertEventId)"
+                        [disabled]="busyAlertId() === alert.alertEventId">
+                  {{ busyAlertId() === alert.alertEventId ? 'Resolving…' : 'Confirm resolve' }}
+                </button>
+                <button class="btn btn-ghost btn-sm" (click)="cancelResolve()">Cancel</button>
+              </div>
+            </div>
+          }
+
+          <!-- ── Reassign panel ─── -->
+          @if (reassigningAlertId() === alert.alertEventId) {
+            <div class="action-panel">
+              <div class="form-row">
+                <div class="field">
+                  <label>New owner team</label>
+                  <input type="text" [(ngModel)]="reassignOwner" placeholder="e.g. Yard Ops" />
+                </div>
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary btn-sm" (click)="submitReassign(alert.alertEventId)"
+                        [disabled]="busyAlertId() === alert.alertEventId">
+                  {{ busyAlertId() === alert.alertEventId ? 'Saving…' : 'Update owner' }}
+                </button>
+                <button class="btn btn-ghost btn-sm" (click)="cancelReassign()">Cancel</button>
+              </div>
+            </div>
+          }
+
+          <!-- ── Action row ─── -->
+          <div class="alert-actions">
+            @if (isDispatch()) {
+              @if (alert.status === 'Active') {
+                <button class="btn btn-ghost btn-xs" (click)="acknowledge(alert.alertEventId)"
+                        [disabled]="busyAlertId() === alert.alertEventId">
+                  {{ busyAlertId() === alert.alertEventId ? '…' : 'Acknowledge' }}
+                </button>
+                <button class="btn btn-ghost btn-xs" (click)="openResolve(alert.alertEventId)">Resolve</button>
+              }
+              @if (alert.status === 'Acknowledged') {
+                <button class="btn btn-ghost btn-xs" (click)="openResolve(alert.alertEventId)">Resolve</button>
+                <button class="btn btn-ghost btn-xs" (click)="reopen(alert.alertEventId)"
+                        [disabled]="busyAlertId() === alert.alertEventId">
+                  {{ busyAlertId() === alert.alertEventId ? '…' : 'Reopen' }}
+                </button>
+              }
+              @if (alert.status === 'Resolved' || alert.status === 'Closed') {
+                <button class="btn btn-ghost btn-xs" (click)="reopen(alert.alertEventId)"
+                        [disabled]="busyAlertId() === alert.alertEventId">
+                  {{ busyAlertId() === alert.alertEventId ? '…' : 'Reopen' }}
+                </button>
+              }
+              <button class="btn btn-ghost btn-xs" (click)="openReassign(alert)">Reassign</button>
+            }
+            @if (isAdmin()) {
+              <button class="btn btn-danger-ghost btn-xs" (click)="close(alert.alertEventId)"
+                      [disabled]="busyAlertId() === alert.alertEventId">
+                {{ busyAlertId() === alert.alertEventId ? '…' : 'Close' }}
+              </button>
+            }
+          </div>
+
+        </article>
+      }
+    </div>
+  }
+</section>

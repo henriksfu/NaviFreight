@@ -1,0 +1,221 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="page-kicker">Routing</p>
+      <h2>Dispatch execution lanes</h2>
+    </div>
+    <div class="header-right">
+      <span class="route-count">{{ routes().length }} routes</span>
+      @if (isDispatch()) {
+        <button class="btn btn-primary btn-sm" (click)="openCreate()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Route
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner" role="alert">{{ error() }}</div>
+  }
+
+  @if (showCreateForm()) {
+    <div class="inline-form">
+      <p class="form-title">New Route</p>
+      @if (formError()) {
+        <p class="field-error">{{ formError() }}</p>
+      }
+      <div class="form-row">
+        <div class="field field-sm">
+          <label>Route code</label>
+          <input type="text" [(ngModel)]="newRouteCode" placeholder="e.g. RT-501" />
+        </div>
+        <div class="field field-xs">
+          <label>Origin yard ID</label>
+          <input type="number" [(ngModel)]="newOriginYardId" min="1" />
+        </div>
+        <div class="field">
+          <label>Destination</label>
+          <input type="text" [(ngModel)]="newDestination" placeholder="e.g. Memphis Hub" />
+        </div>
+        <div class="field field-sm">
+          <label>Status</label>
+          <select [(ngModel)]="newStatus">
+            @for (s of routeStatuses; track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:0.75rem">
+        <div class="field">
+          <label>Next departure</label>
+          <input type="datetime-local" [(ngModel)]="newDeparture" />
+        </div>
+        <div class="field field-xs">
+          <label>Completion %</label>
+          <input type="number" [(ngModel)]="newCompletion" min="0" max="100" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary btn-sm" (click)="submitCreate()" [disabled]="isSaving()">
+          {{ isSaving() ? 'Creating…' : 'Create Route' }}
+        </button>
+        <button class="btn btn-ghost btn-sm" (click)="cancelCreate()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-row">
+      <span class="spinner" aria-label="Loading"></span>
+      Loading routes…
+    </div>
+  } @else if (routes().length === 0) {
+    <p class="empty-state">No routes found.</p>
+  } @else {
+    <div class="route-list">
+      @for (item of routes(); track trackByCode($index, item)) {
+        <article class="route-card">
+
+          @if (editingRouteCode() === item.route.routeCode) {
+            <!-- ── Edit form ─── -->
+            <div class="card-edit-form">
+              <div class="form-row">
+                <div class="field">
+                  <label>Destination</label>
+                  <input type="text" [(ngModel)]="editDestination" />
+                </div>
+                <div class="field field-sm">
+                  <label>Status</label>
+                  <select [(ngModel)]="editStatus">
+                    @for (s of routeStatuses; track s) {
+                      <option [value]="s">{{ s }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Next departure</label>
+                  <input type="datetime-local" [(ngModel)]="editDeparture" />
+                </div>
+                <div class="field field-xs">
+                  <label>Completion %</label>
+                  <input type="number" [(ngModel)]="editCompletion" min="0" max="100" />
+                </div>
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary btn-sm" (click)="submitEdit(item.route.routeCode)"
+                        [disabled]="isSavingEdit()">
+                  {{ isSavingEdit() ? '…' : 'Save' }}
+                </button>
+                <button class="btn btn-ghost btn-sm" (click)="cancelEdit()">Cancel</button>
+              </div>
+            </div>
+
+          } @else if (assigningRouteCode() === item.route.routeCode) {
+            <!-- ── Assign vehicles form ─── -->
+            <div class="card-edit-form">
+              <div class="route-head" style="margin-bottom:0.75rem">
+                <div>
+                  <p class="route-code">{{ item.route.routeCode }}</p>
+                  <h3>Assign vehicles to {{ item.route.origin }} → {{ item.route.destination }}</h3>
+                </div>
+              </div>
+              @if (assignError()) {
+                <p class="field-error">{{ assignError() }}</p>
+              }
+              <div class="field">
+                <label>Vehicle IDs (comma-separated)</label>
+                <input type="text" [(ngModel)]="assignVehicleIds" placeholder="e.g. VH-001, VH-002" />
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary btn-sm" (click)="submitAssign(item.route.routeCode)"
+                        [disabled]="isSavingAssign()">
+                  {{ isSavingAssign() ? '…' : 'Assign' }}
+                </button>
+                <button class="btn btn-ghost btn-sm" (click)="cancelAssign()">Cancel</button>
+              </div>
+            </div>
+
+          } @else {
+            <!-- ── Card view ─── -->
+            <div class="route-head">
+              <div>
+                <p class="route-code">{{ item.route.routeCode }}</p>
+                <h3>{{ item.route.origin }} → {{ item.route.destination }}</h3>
+              </div>
+              <span class="status-chip" [ngClass]="statusClass(item.route.status)">{{ item.route.status }}</span>
+            </div>
+
+            <div class="route-meta">
+              <div class="meta-item">
+                <span>Assigned vehicles</span>
+                <strong>{{ item.route.assignedVehicles }}</strong>
+              </div>
+              <div class="meta-item">
+                <span>Next departure</span>
+                <strong>{{ formatDate(item.route.nextDepartureUtc) }}</strong>
+              </div>
+            </div>
+
+            <div class="route-progress">
+              <div class="progress-label">
+                <span>Execution progress</span>
+                <strong>{{ item.route.completionPercent }}%</strong>
+              </div>
+              <div class="track">
+                <span class="track-fill" [ngClass]="statusClass(item.route.status)"
+                      [style.width.%]="item.route.completionPercent"></span>
+              </div>
+            </div>
+
+            <!-- ── Assigned vehicles panel ─── -->
+            @if (item.expanded && item.assignedVehicles) {
+              <div class="assignments-panel">
+                @if (item.assignedVehicles.length === 0) {
+                  <p class="empty-assign">No vehicles assigned.</p>
+                } @else {
+                  @for (v of item.assignedVehicles; track v.vehicleId) {
+                    <div class="assignment-row">
+                      <span class="a-vehicle">{{ v.vehicleId }}</span>
+                      <span class="a-driver">{{ v.driverName || 'Unassigned' }}</span>
+                      <span class="a-yard">{{ v.currentYard || '—' }}</span>
+                      @if (isDispatch()) {
+                        <button class="btn btn-danger-ghost btn-xs"
+                                (click)="unassignVehicle(item.route.routeCode, v.vehicleId)"
+                                [disabled]="unassigningKey() === item.route.routeCode + ':' + v.vehicleId">
+                          {{ unassigningKey() === item.route.routeCode + ':' + v.vehicleId ? '…' : 'Remove' }}
+                        </button>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            }
+
+            <div class="route-actions">
+              <button class="btn btn-ghost btn-xs" (click)="toggleExpand(item.route.routeCode)"
+                      [disabled]="item.loadingDetail">
+                @if (item.loadingDetail) { Loading… }
+                @else if (item.expanded) { Hide vehicles }
+                @else { View vehicles ({{ item.route.assignedVehicles }}) }
+              </button>
+              @if (isDispatch()) {
+                <button class="btn btn-ghost btn-xs" (click)="openAssign(item.route.routeCode)">
+                  Assign vehicles
+                </button>
+                <button class="btn btn-ghost btn-xs" (click)="openEdit(item.route)">Edit</button>
+                <button class="btn btn-danger-ghost btn-xs"
+                        (click)="deleteRoute(item.route.routeCode)"
+                        [disabled]="deletingRouteCode() === item.route.routeCode">
+                  {{ deletingRouteCode() === item.route.routeCode ? '…' : 'Delete' }}
+                </button>
+              }
+            </div>
+          }
+
+        </article>
+      }
+    </div>
+  }
+</section>
