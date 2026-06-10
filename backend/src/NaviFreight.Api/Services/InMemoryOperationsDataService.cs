@@ -302,7 +302,7 @@ public sealed class InMemoryOperationsDataService : IOperationsDataService
 
         if (route is null)
         {
-            return null;
+            return Task.FromResult<RouteDetailResponse?>(null);
         }
 
         var assignedVehicles = AllFleet()
@@ -315,7 +315,7 @@ public sealed class InMemoryOperationsDataService : IOperationsDataService
                 vehicle.EtaUtc))
             .ToList();
 
-        return new RouteDetailResponse(route, assignedVehicles);
+        return Task.FromResult<RouteDetailResponse?>(new RouteDetailResponse(route, assignedVehicles));
     }
 
     public Task<RouteAssignmentResponse> CreateRouteAsync(string tenantId, CreateRouteRequest request, CancellationToken cancellationToken = default)
@@ -576,7 +576,7 @@ public sealed class InMemoryOperationsDataService : IOperationsDataService
     public Task<UserResponse?> UpdateUserAsync(string tenantId, int userId, UpdateUserRequest request, string? newPasswordHash, CancellationToken cancellationToken = default)
     {
         var user = AllUsers().FirstOrDefault(u => u.UserId == userId);
-        return user is null ? null : user with { DisplayName = request.DisplayName, Role = request.Role };
+        return Task.FromResult<UserResponse?>(user is null ? null : user with { DisplayName = request.DisplayName, Role = request.Role });
     }
 
     public Task<bool> DeactivateUserAsync(string tenantId, int userId, CancellationToken cancellationToken = default)

@@ -31,7 +31,7 @@ public static class DashboardEndpoints
             return Results.Ok(new
             {
                 tenantId = tenant.TenantId,
-                items = await operations.GetFleetAsync(tenant.TenantId, cancellationToken)
+                items = await operations.GetFleetAsync(tenant.TenantId, cancellationToken: cancellationToken)
             });
         });
 
