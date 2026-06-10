@@ -1,0 +1,319 @@
+.page {
+  padding: 1.75rem 2rem 2.5rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.page-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 0.4rem;
+}
+
+h2 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--text-1);
+  margin: 0;
+}
+
+.page-copy {
+  margin-top: 0.4rem;
+  color: var(--text-2);
+  font-size: 0.875rem;
+}
+
+/* ── Stats ───────────────────────────── */
+
+.stats-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.stat-chip {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  background: var(--surf-raised);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.stat-val {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-1);
+  font-family: var(--font-mono);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.stat-chip--muted .stat-val { color: var(--text-3); }
+
+/* ── Create form ─────────────────────── */
+
+.create-form {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  background: var(--surf-raised);
+  border-radius: 2px;
+  margin-bottom: 1.25rem;
+}
+
+.form-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* ── Table ───────────────────────────── */
+
+.user-table {
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.table-head,
+.table-row {
+  display: grid;
+  grid-template-columns: 1.3fr 1.8fr 1.1fr 0.8fr 0.9fr auto;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  align-items: center;
+}
+
+.table-head {
+  background: var(--surf-raised);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.table-row {
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--border);
+  transition: background 80ms;
+
+  &:last-child { border-bottom: 0; }
+  &:hover { background: var(--surf-raised); }
+  &.row--inactive { opacity: 0.6; }
+}
+
+.table-row--editing {
+  display: block;
+  padding: 1rem;
+  background: var(--surf-raised);
+  border-bottom: 1px solid var(--border);
+}
+
+.edit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.u-name  { font-weight: 500; color: var(--text-1); }
+.u-email { font-size: 0.82rem; color: var(--text-2); font-family: var(--font-mono); }
+.u-date  { font-size: 0.78rem; color: var(--text-3); font-family: var(--font-mono); }
+
+/* ── Role badges ─────────────────────── */
+
+.role-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.45rem;
+  border-radius: 2px;
+  background: var(--surf-raised);
+  color: var(--text-2);
+  white-space: nowrap;
+
+  &.role-tenant-admin { background: var(--info-bg);    color: var(--info); }
+  &.role-dispatcher   { background: var(--warn-bg);    color: var(--warn); }
+  &.role-yard-manager { background: var(--success-bg); color: var(--success); }
+}
+
+/* ── Status badge ────────────────────── */
+
+.status-badge {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  padding: 0.2rem 0.45rem;
+  border-radius: 2px;
+
+  &.status-active   { background: var(--success-bg); color: var(--success); }
+  &.status-inactive { background: var(--surf-raised); color: var(--text-3); }
+}
+
+/* ── Row actions ─────────────────────── */
+
+.row-actions {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+}
+
+/* ── Form elements ───────────────────── */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-2);
+  }
+
+  input, select {
+    padding: 0.45rem 0.6rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text-1);
+    font-size: 0.875rem;
+    font-family: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+  }
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--text-3);
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ── Buttons ─────────────────────────── */
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 80ms;
+  white-space: nowrap;
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.btn-sm { padding: 0.3rem 0.65rem; font-size: 0.78rem; }
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  &:hover:not(:disabled) { opacity: 0.85; }
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-2);
+  &:hover:not(:disabled) { background: var(--surf-raised); }
+}
+
+.btn-danger {
+  background: transparent;
+  border-color: var(--danger);
+  color: var(--danger);
+  &:hover:not(:disabled) { background: var(--danger-bg); }
+}
+
+/* ── Error / loading ─────────────────── */
+
+.error-banner {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 20%, transparent);
+  border-radius: 3px;
+  font-size: 0.875rem;
+}
+
+.loading-band {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-3);
+  font-size: 0.875rem;
+  padding: 3rem 0;
+}
+
+.spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.table-empty {
+  padding: 2rem;
+  color: var(--text-3);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* ── Responsive ──────────────────────── */
+
+@media (max-width: 900px) {
+  .form-grid, .edit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .table-head { display: none; }
+
+  .table-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+}

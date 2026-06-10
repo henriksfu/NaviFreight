@@ -7,5 +7,6 @@ export const navigationItems: NavigationItem[] = [
   { label: 'Routes', route: '/routes', section: 'Operations' },
   { label: 'Reports', route: '/reports', section: 'Analytics' },
   { label: 'Alerts', route: '/alerts', section: 'Analytics', badge: '3' },
+  { label: 'Users', route: '/users', section: 'Admin' },
   { label: 'Settings', route: '/settings', section: 'Admin' }
 ];

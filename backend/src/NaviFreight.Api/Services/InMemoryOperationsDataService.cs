@@ -517,4 +517,39 @@ public sealed class InMemoryOperationsDataService : IOperationsDataService
             reports,
             settings);
     }
+
+    public Task<IReadOnlyList<UserResponse>> GetUsersAsync(string tenantId, CancellationToken cancellationToken = default)
+    {
+        IReadOnlyList<UserResponse> users =
+        [
+            new(1, "morgan.ellis@atlasmeridian.example", "Morgan Ellis", "Tenant Admin",  true, DateTime.UtcNow.AddMonths(-6)),
+            new(2, "priya.shah@atlasmeridian.example",   "Priya Shah",   "Dispatcher",    true, DateTime.UtcNow.AddMonths(-4)),
+            new(3, "darius.cole@atlasmeridian.example",  "Darius Cole",  "Yard Manager",  true, DateTime.UtcNow.AddMonths(-2))
+        ];
+        return Task.FromResult(users);
+    }
+
+    public async Task<UserResponse> CreateUserAsync(string tenantId, CreateUserRequest request, string passwordHash, CancellationToken cancellationToken = default)
+    {
+        var users = await GetUsersAsync(tenantId, cancellationToken);
+        return new UserResponse(users.Count + 1, request.Email, request.DisplayName, request.Role, true, DateTime.UtcNow);
+    }
+
+    public async Task<UserResponse?> UpdateUserAsync(string tenantId, int userId, UpdateUserRequest request, string? newPasswordHash, CancellationToken cancellationToken = default)
+    {
+        var user = (await GetUsersAsync(tenantId, cancellationToken)).FirstOrDefault(u => u.UserId == userId);
+        return user is null ? null : user with { DisplayName = request.DisplayName, Role = request.Role };
+    }
+
+    public async Task<bool> DeactivateUserAsync(string tenantId, int userId, CancellationToken cancellationToken = default)
+    {
+        var users = await GetUsersAsync(tenantId, cancellationToken);
+        return users.Any(u => u.UserId == userId);
+    }
+
+    public async Task<UserResponse?> ReactivateUserAsync(string tenantId, int userId, CancellationToken cancellationToken = default)
+    {
+        var user = (await GetUsersAsync(tenantId, cancellationToken)).FirstOrDefault(u => u.UserId == userId);
+        return user is null ? null : user with { IsActive = true };
+    }
 }

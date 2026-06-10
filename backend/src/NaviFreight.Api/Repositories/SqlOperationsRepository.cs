@@ -938,6 +938,92 @@ public sealed class SqlOperationsRepository(ISqlConnectionFactory connectionFact
             reader.GetDateTime(reader.GetOrdinal("CreatedUtc")),
             reader.IsDBNull(reader.GetOrdinal("UpdatedUtc")) ? null : reader.GetDateTime(reader.GetOrdinal("UpdatedUtc")));
 
+    public async Task<IReadOnlyList<UserResponse>> GetUsersAsync(string tenantId, CancellationToken cancellationToken = default)
+    {
+        await using var conn = connectionFactory.CreateConnection();
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "dbo.usp_UserList";
+        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@TenantId", tenantId);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        var results = new List<UserResponse>();
+        while (await reader.ReadAsync(cancellationToken))
+            results.Add(MapUser(reader));
+        return results;
+    }
+
+    public async Task<UserResponse> CreateUserAsync(string tenantId, CreateUserRequest request, string passwordHash, CancellationToken cancellationToken = default)
+    {
+        await using var conn = connectionFactory.CreateConnection();
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "dbo.usp_UserCreate";
+        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@TenantId", tenantId);
+        cmd.Parameters.AddWithValue("@Email", request.Email);
+        cmd.Parameters.AddWithValue("@DisplayName", request.DisplayName);
+        cmd.Parameters.AddWithValue("@RoleName", request.Role);
+        cmd.Parameters.AddWithValue("@PasswordHash", passwordHash);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        await reader.ReadAsync(cancellationToken);
+        return MapUser(reader);
+    }
+
+    public async Task<UserResponse?> UpdateUserAsync(string tenantId, int userId, UpdateUserRequest request, string? newPasswordHash, CancellationToken cancellationToken = default)
+    {
+        await using var conn = connectionFactory.CreateConnection();
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "dbo.usp_UserUpdate";
+        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@TenantId", tenantId);
+        cmd.Parameters.AddWithValue("@UserId", userId);
+        cmd.Parameters.AddWithValue("@DisplayName", request.DisplayName);
+        cmd.Parameters.AddWithValue("@RoleName", request.Role);
+        cmd.Parameters.Add(new Microsoft.Data.SqlClient.SqlParameter("@NewPasswordHash", System.Data.SqlDbType.NVarChar, 200)
+            { Value = newPasswordHash is null ? DBNull.Value : newPasswordHash });
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken)) return null;
+        return MapUser(reader);
+    }
+
+    public async Task<bool> DeactivateUserAsync(string tenantId, int userId, CancellationToken cancellationToken = default)
+    {
+        await using var conn = connectionFactory.CreateConnection();
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "dbo.usp_UserDeactivate";
+        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@TenantId", tenantId);
+        cmd.Parameters.AddWithValue("@UserId", userId);
+        var rows = await cmd.ExecuteNonQueryAsync(cancellationToken);
+        return rows > 0;
+    }
+
+    public async Task<UserResponse?> ReactivateUserAsync(string tenantId, int userId, CancellationToken cancellationToken = default)
+    {
+        await using var conn = connectionFactory.CreateConnection();
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "dbo.usp_UserReactivate";
+        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@TenantId", tenantId);
+        cmd.Parameters.AddWithValue("@UserId", userId);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken)) return null;
+        return MapUser(reader);
+    }
+
+    private static UserResponse MapUser(SqlDataReader reader) =>
+        new(
+            reader.GetInt32(reader.GetOrdinal("UserId")),
+            reader.GetString(reader.GetOrdinal("EmailAddress")),
+            reader.GetString(reader.GetOrdinal("DisplayName")),
+            reader.GetString(reader.GetOrdinal("RoleName")),
+            reader.GetBoolean(reader.GetOrdinal("IsActive")),
+            reader.GetDateTime(reader.GetOrdinal("CreatedUtc")));
+
     private static AlertResponse MapAlert(SqlDataReader reader) =>
         new(
             reader.GetInt32(reader.GetOrdinal("AlertEventId")),

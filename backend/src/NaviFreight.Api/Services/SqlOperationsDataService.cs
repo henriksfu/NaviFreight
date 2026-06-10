@@ -141,6 +141,21 @@ public sealed class SqlOperationsDataService(IOperationsRepository operationsRep
     public Task<IReadOnlyList<SettingsSectionResponse>> GetSettingsAsync(string tenantId, CancellationToken cancellationToken = default)
         => operationsRepository.GetSettingsAsync(tenantId, cancellationToken);
 
+    public Task<IReadOnlyList<UserResponse>> GetUsersAsync(string tenantId, CancellationToken cancellationToken = default)
+        => operationsRepository.GetUsersAsync(tenantId, cancellationToken);
+
+    public Task<UserResponse> CreateUserAsync(string tenantId, CreateUserRequest request, string passwordHash, CancellationToken cancellationToken = default)
+        => operationsRepository.CreateUserAsync(tenantId, request, passwordHash, cancellationToken);
+
+    public Task<UserResponse?> UpdateUserAsync(string tenantId, int userId, UpdateUserRequest request, string? newPasswordHash, CancellationToken cancellationToken = default)
+        => operationsRepository.UpdateUserAsync(tenantId, userId, request, newPasswordHash, cancellationToken);
+
+    public Task<bool> DeactivateUserAsync(string tenantId, int userId, CancellationToken cancellationToken = default)
+        => operationsRepository.DeactivateUserAsync(tenantId, userId, cancellationToken);
+
+    public Task<UserResponse?> ReactivateUserAsync(string tenantId, int userId, CancellationToken cancellationToken = default)
+        => operationsRepository.ReactivateUserAsync(tenantId, userId, cancellationToken);
+
     public async Task<OperationalOverviewResponse> GetOverviewAsync(string tenantId, CancellationToken cancellationToken = default)
     {
         var summary = await GetSummaryAsync(tenantId, cancellationToken);

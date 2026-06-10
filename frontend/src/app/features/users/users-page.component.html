@@ -1,0 +1,133 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-kicker">Admin</div>
+      <h2>User Management</h2>
+      <p class="page-copy">Manage team members, roles, and access for this tenant.</p>
+    </div>
+    @if (!showCreate()) {
+      <button class="btn btn-primary" type="button" (click)="openCreate()">+ Add User</button>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="error-banner">{{ error() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-band">
+      <span class="spinner"></span> Loading users...
+    </div>
+  } @else {
+    <div class="stats-row">
+      <div class="stat-chip">
+        <span class="stat-val">{{ activeCount() }}</span>
+        <span class="stat-label">Active</span>
+      </div>
+      <div class="stat-chip stat-chip--muted">
+        <span class="stat-val">{{ inactiveCount() }}</span>
+        <span class="stat-label">Inactive</span>
+      </div>
+    </div>
+
+    @if (showCreate()) {
+      <div class="create-form">
+        <div class="form-title">New User</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Email</label>
+            <input type="email" [(ngModel)]="newEmail" placeholder="user@company.com" />
+          </div>
+          <div class="field">
+            <label>Display Name</label>
+            <input type="text" [(ngModel)]="newDisplayName" placeholder="Full name" />
+          </div>
+          <div class="field">
+            <label>Role</label>
+            <select [(ngModel)]="newRole">
+              @for (r of roles; track r) {
+                <option [value]="r">{{ r }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Initial Password</label>
+            <input type="password" [(ngModel)]="newPassword" placeholder="Temporary password" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" type="button" (click)="submitCreate()" [disabled]="creating || !newEmail || !newDisplayName || !newPassword">
+            {{ creating ? 'Adding...' : 'Add User' }}
+          </button>
+          <button class="btn btn-ghost" type="button" (click)="cancelCreate()">Cancel</button>
+        </div>
+      </div>
+    }
+
+    <div class="user-table">
+      <div class="table-head">
+        <span>Name</span>
+        <span>Email</span>
+        <span>Role</span>
+        <span>Status</span>
+        <span>Added</span>
+        <span></span>
+      </div>
+
+      @for (user of users(); track user.userId) {
+        @if (editingId() === user.userId) {
+          <div class="table-row table-row--editing">
+            <div class="edit-grid">
+              <div class="field">
+                <label>Display Name</label>
+                <input type="text" [(ngModel)]="editState[user.userId].displayName" />
+              </div>
+              <div class="field">
+                <label>Role</label>
+                <select [(ngModel)]="editState[user.userId].role">
+                  @for (r of roles; track r) {
+                    <option [value]="r">{{ r }}</option>
+                  }
+                </select>
+              </div>
+              <div class="field">
+                <label>New Password <span class="optional">(optional)</span></label>
+                <input type="password" [(ngModel)]="editState[user.userId].newPassword" placeholder="Leave blank to keep current" />
+              </div>
+            </div>
+            <div class="row-actions">
+              <button class="btn btn-primary btn-sm" type="button" (click)="submitEdit(user.userId)" [disabled]="savingId() === user.userId">
+                {{ savingId() === user.userId ? 'Saving...' : 'Save' }}
+              </button>
+              <button class="btn btn-ghost btn-sm" type="button" (click)="cancelEdit()">Cancel</button>
+            </div>
+          </div>
+        } @else {
+          <div class="table-row" [ngClass]="{ 'row--inactive': !user.isActive }">
+            <span class="u-name">{{ user.displayName }}</span>
+            <span class="u-email">{{ user.email }}</span>
+            <span class="role-badge" [ngClass]="'role-' + user.role.toLowerCase().replace(' ', '-')">{{ user.role }}</span>
+            <span class="status-badge" [ngClass]="user.isActive ? 'status-active' : 'status-inactive'">
+              {{ user.isActive ? 'Active' : 'Inactive' }}
+            </span>
+            <span class="u-date">{{ formatDate(user.createdUtc) }}</span>
+            <div class="row-actions">
+              @if (user.isActive) {
+                <button class="btn btn-ghost btn-sm" type="button" (click)="openEdit(user)" [disabled]="savingId() === user.userId">Edit</button>
+                <button class="btn btn-danger btn-sm" type="button" (click)="deactivate(user)" [disabled]="savingId() === user.userId">Deactivate</button>
+              } @else {
+                <button class="btn btn-ghost btn-sm" type="button" (click)="reactivate(user)" [disabled]="savingId() === user.userId">
+                  {{ savingId() === user.userId ? '...' : 'Reactivate' }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+      }
+
+      @if (users().length === 0) {
+        <div class="table-empty">No users found for this tenant.</div>
+      }
+    </div>
+  }
+</div>

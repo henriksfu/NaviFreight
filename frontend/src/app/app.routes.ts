@@ -9,6 +9,7 @@ import { RoutesPageComponent } from './features/routes/routes-page.component';
 import { SettingsPageComponent } from './features/settings/settings-page.component';
 import { YardsPageComponent } from './features/yards/yards-page.component';
 import { YardDetailPageComponent } from './features/yards/yard-detail-page.component';
+import { UsersPageComponent } from './features/users/users-page.component';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 
@@ -57,6 +58,12 @@ export const routes: Routes = [
         path: 'alerts',
         component: AlertsPageComponent,
         title: 'NaviFreight | Alerts'
+      },
+      {
+        path: 'users',
+        component: UsersPageComponent,
+        canActivate: [roleGuard(['Tenant Admin'])],
+        title: 'NaviFreight | User Management'
       },
       {
         path: 'settings',

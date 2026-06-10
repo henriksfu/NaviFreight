@@ -28,14 +28,14 @@ A multi-tenant SaaS platform for enterprise freight and logistics operations. Na
 - **Route Dispatch** — Route list with expandable detail. Assign multiple vehicles to a route, unassign per vehicle. Create, update, and delete routes.
 - **Alerts** — Status-tabbed alert feed (Active, Acknowledged, Resolved, Closed). One-click acknowledge, inline resolve with notes, reopen, reassign owner. Severity filtering (Critical, Warning, Info).
 - **Multi-tenancy** — All API requests scoped to tenant via `X-Tenant-Id` header. SQL queries filter by `TenantId` throughout.
-- **Real database** — SQL Server 2022 via Docker. Idempotent schema migrations, full demo seed data, 46 stored procedures covering all operations.
+- **Real database** — SQL Server 2022 via Docker. Idempotent schema migrations, full demo seed data, 51 stored procedures covering all operations.
+- **Global Error Handling** — HTTP interceptor catches 401/403/5xx and network errors. Toast notifications render in the bottom-right corner with auto-dismiss. 401s trigger automatic logout and redirect to login.
+- **User Management** — Tenant Admin–only page to list, create, edit, deactivate, and reactivate users within the tenant. Role assignment (Tenant Admin / Dispatcher / Yard Manager), optional password reset on edit. Full backend CRUD via `/api/users` with SHA-256 password hashing.
 
 ### In Progress / Planned
 
-- **User Management** — Admin UI to invite, edit, and deactivate users within a tenant.
 - **Settings Page** — Currently a static placeholder. Planned: tenant branding, notification preferences, API key management.
 - **Reports Page** — Currently shows seeded snapshots. Planned: date-range filters, CSV export, charts.
-- **Global Error Handling** — HTTP interceptor for 401/403/5xx with user-facing toasts.
 - **Real-time Updates** — SignalR integration for live fleet position and alert push.
 - **Pagination** — Fleet, routes, and alerts are currently unbounded lists.
 - **Password Security Upgrade** — SHA-256 is dev-only. Production requires bcrypt or Argon2.
