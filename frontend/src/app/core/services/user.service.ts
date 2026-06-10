@@ -1,15 +1,17 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { UserResponse, CreateUserRequest, UpdateUserRequest } from '../models/user.models';
+import { PagedResponse } from '../models/paged-response';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private readonly http = inject(HttpClient);
   private readonly base = '/api/users';
 
-  getUsers(): Promise<UserResponse[]> {
-    return firstValueFrom(this.http.get<UserResponse[]>(this.base));
+  getUsers(page = 1, pageSize = 20): Promise<PagedResponse<UserResponse>> {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    return firstValueFrom(this.http.get<PagedResponse<UserResponse>>(this.base, { params }));
   }
 
   createUser(req: CreateUserRequest): Promise<UserResponse> {

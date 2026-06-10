@@ -9,8 +9,8 @@ public sealed class SqlOperationsDataService(IOperationsRepository operationsRep
     public Task<DashboardSummaryResponse> GetSummaryAsync(string tenantId, CancellationToken cancellationToken = default)
         => operationsRepository.GetSummaryAsync(tenantId, cancellationToken);
 
-    public Task<IReadOnlyList<FleetVehicleResponse>> GetFleetAsync(string tenantId, CancellationToken cancellationToken = default)
-        => operationsRepository.GetFleetAsync(tenantId, cancellationToken);
+    public Task<PagedResponse<FleetVehicleResponse>> GetFleetAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
+        => operationsRepository.GetFleetAsync(tenantId, page, pageSize, cancellationToken);
 
     public Task<FleetVehicleDetailResponse?> GetVehicleByIdAsync(string tenantId, string vehicleId, CancellationToken cancellationToken = default)
         => operationsRepository.GetVehicleByIdAsync(tenantId, vehicleId, cancellationToken);
@@ -30,8 +30,8 @@ public sealed class SqlOperationsDataService(IOperationsRepository operationsRep
     public Task<FleetVehicleDetailResponse?> UnassignDriverAsync(string tenantId, string vehicleId, CancellationToken cancellationToken = default)
         => operationsRepository.UnassignDriverAsync(tenantId, vehicleId, cancellationToken);
 
-    public Task<IReadOnlyList<DriverResponse>> GetDriversAsync(string tenantId, CancellationToken cancellationToken = default)
-        => operationsRepository.GetDriversAsync(tenantId, cancellationToken);
+    public Task<PagedResponse<DriverResponse>> GetDriversAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
+        => operationsRepository.GetDriversAsync(tenantId, page, pageSize, cancellationToken);
 
     public Task<DriverResponse?> GetDriverByIdAsync(string tenantId, int driverId, CancellationToken cancellationToken = default)
         => operationsRepository.GetDriverByIdAsync(tenantId, driverId, cancellationToken);
@@ -87,8 +87,8 @@ public sealed class SqlOperationsDataService(IOperationsRepository operationsRep
     public Task<DockResponse?> ReleaseDockAsync(string tenantId, int yardId, int dockId, CancellationToken cancellationToken = default)
         => operationsRepository.ReleaseDockAsync(tenantId, yardId, dockId, cancellationToken);
 
-    public Task<IReadOnlyList<RouteAssignmentResponse>> GetRoutesAsync(string tenantId, CancellationToken cancellationToken = default)
-        => operationsRepository.GetRoutesAsync(tenantId, cancellationToken);
+    public Task<PagedResponse<RouteAssignmentResponse>> GetRoutesAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
+        => operationsRepository.GetRoutesAsync(tenantId, page, pageSize, cancellationToken);
 
     public Task<RouteDetailResponse?> GetRouteByCodeAsync(string tenantId, string routeCode, CancellationToken cancellationToken = default)
         => operationsRepository.GetRouteByCodeAsync(tenantId, routeCode, cancellationToken);
@@ -111,8 +111,8 @@ public sealed class SqlOperationsDataService(IOperationsRepository operationsRep
     public Task<IReadOnlyList<AlertItemResponse>> GetAlertsAsync(string tenantId, CancellationToken cancellationToken = default)
         => operationsRepository.GetAlertsAsync(tenantId, cancellationToken);
 
-    public Task<IReadOnlyList<AlertResponse>> GetAlertListAsync(string tenantId, string? status = null, string? severity = null, CancellationToken cancellationToken = default)
-        => operationsRepository.GetAlertListAsync(tenantId, status, severity, cancellationToken);
+    public Task<PagedResponse<AlertResponse>> GetAlertListAsync(string tenantId, string? status = null, string? severity = null, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
+        => operationsRepository.GetAlertListAsync(tenantId, status, severity, page, pageSize, cancellationToken);
 
     public Task<AlertResponse?> GetAlertDetailAsync(string tenantId, int alertId, CancellationToken cancellationToken = default)
         => operationsRepository.GetAlertDetailAsync(tenantId, alertId, cancellationToken);
@@ -150,8 +150,8 @@ public sealed class SqlOperationsDataService(IOperationsRepository operationsRep
     public Task<ReportSummaryResponse> GetReportSummaryAsync(string tenantId, DateTime from, DateTime to, CancellationToken cancellationToken = default)
         => operationsRepository.GetReportSummaryAsync(tenantId, from, to, cancellationToken);
 
-    public Task<IReadOnlyList<UserResponse>> GetUsersAsync(string tenantId, CancellationToken cancellationToken = default)
-        => operationsRepository.GetUsersAsync(tenantId, cancellationToken);
+    public Task<PagedResponse<UserResponse>> GetUsersAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
+        => operationsRepository.GetUsersAsync(tenantId, page, pageSize, cancellationToken);
 
     public Task<UserResponse> CreateUserAsync(string tenantId, CreateUserRequest request, string passwordHash, CancellationToken cancellationToken = default)
         => operationsRepository.CreateUserAsync(tenantId, request, passwordHash, cancellationToken);
@@ -168,13 +168,13 @@ public sealed class SqlOperationsDataService(IOperationsRepository operationsRep
     public async Task<OperationalOverviewResponse> GetOverviewAsync(string tenantId, CancellationToken cancellationToken = default)
     {
         var summary = await GetSummaryAsync(tenantId, cancellationToken);
-        var fleet = await GetFleetAsync(tenantId, cancellationToken);
-        var yards = await GetYardsAsync(tenantId, cancellationToken);
-        var routes = await GetRoutesAsync(tenantId, cancellationToken);
-        var alerts = await GetAlertsAsync(tenantId, cancellationToken);
+        var fleet   = await GetFleetAsync(tenantId, pageSize: 1000, cancellationToken: cancellationToken);
+        var yards   = await GetYardsAsync(tenantId, cancellationToken);
+        var routes  = await GetRoutesAsync(tenantId, pageSize: 1000, cancellationToken: cancellationToken);
+        var alerts  = await GetAlertsAsync(tenantId, cancellationToken);
         var reports = await GetReportsAsync(tenantId, cancellationToken);
         var settings = await GetSettingsAsync(tenantId, cancellationToken);
 
-        return new OperationalOverviewResponse(summary, fleet, yards, routes, alerts, reports, settings);
+        return new OperationalOverviewResponse(summary, fleet.Items, yards, routes.Items, alerts, reports, settings);
     }
 }

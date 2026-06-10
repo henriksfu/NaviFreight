@@ -4,13 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { FleetService } from '../../core/services/fleet.service';
 import { FleetVehicleResponse, DriverResponse } from '../../core/models/fleet.models';
+import { PaginationComponent } from '../../shared/components/pagination.component';
 
 type Tab = 'vehicles' | 'drivers';
 
 @Component({
   selector: 'app-fleet-page',
   standalone: true,
-  imports: [NgClass, FormsModule],
+  imports: [NgClass, FormsModule, PaginationComponent],
   templateUrl: './fleet-page.component.html',
   styleUrl: './fleet-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -27,14 +28,19 @@ export class FleetPageComponent implements OnInit {
 
   protected readonly activeTab = signal<Tab>('vehicles');
 
-  // Vehicles state
-  protected readonly vehicles = signal<FleetVehicleResponse[]>([]);
+  // Vehicles state + pagination
+  protected readonly vehicles          = signal<FleetVehicleResponse[]>([]);
   protected readonly isLoadingVehicles = signal(true);
+  protected vehiclePage     = 1;
+  protected vehicleTotalPages = 1;
+  protected readonly pageSize = 20;
 
-  // Drivers state
-  protected readonly drivers = signal<DriverResponse[]>([]);
+  // Drivers state + pagination
+  protected readonly drivers          = signal<DriverResponse[]>([]);
   protected readonly isLoadingDrivers = signal(false);
-  protected readonly driversLoaded = signal(false);
+  protected readonly driversLoaded    = signal(false);
+  protected driverPage      = 1;
+  protected driverTotalPages = 1;
 
   protected readonly error = signal<string | null>(null);
 
@@ -123,12 +129,23 @@ export class FleetPageComponent implements OnInit {
 
   // ── Load ──────────────────────────────────────────────────────────────────
 
+  protected async onVehiclePage(page: number): Promise<void> {
+    this.vehiclePage = page;
+    await this.loadVehicles();
+  }
+
+  protected async onDriverPage(page: number): Promise<void> {
+    this.driverPage = page;
+    await this.loadDrivers();
+  }
+
   private async loadVehicles(): Promise<void> {
     this.isLoadingVehicles.set(true);
     this.error.set(null);
     try {
-      const result = await this.fleetService.getVehicles();
+      const result = await this.fleetService.getVehicles(this.vehiclePage, this.pageSize);
       this.vehicles.set(result.items);
+      this.vehicleTotalPages = result.totalPages;
     } catch {
       this.error.set('Failed to load fleet. Check that the backend is running.');
     } finally {
@@ -139,8 +156,9 @@ export class FleetPageComponent implements OnInit {
   private async loadDrivers(): Promise<void> {
     this.isLoadingDrivers.set(true);
     try {
-      const result = await this.fleetService.getDrivers();
+      const result = await this.fleetService.getDrivers(this.driverPage, this.pageSize);
       this.drivers.set(result.items);
+      this.driverTotalPages = result.totalPages;
       this.driversLoaded.set(true);
     } catch {
       this.error.set('Failed to load drivers.');

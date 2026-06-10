@@ -17,11 +17,12 @@ public static class UserEndpoints
         group.MapGet("/", async (
             IOperationsDataService svc,
             HttpContext ctx,
-            CancellationToken ct) =>
+            int page = 1,
+            int pageSize = 20,
+            CancellationToken ct = default) =>
         {
             var tenantId = ctx.GetTenantContext().TenantId;
-            var users = await svc.GetUsersAsync(tenantId, ct);
-            return Results.Ok(users);
+            return Results.Ok(await svc.GetUsersAsync(tenantId, page, pageSize, ct));
         });
 
         group.MapPost("/", async (

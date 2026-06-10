@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
   FleetVehicleResponse,
@@ -10,6 +10,7 @@ import {
   CreateDriverRequest,
   UpdateDriverRequest
 } from '../models/fleet.models';
+import { PagedResponse } from '../models/paged-response';
 
 @Injectable({ providedIn: 'root' })
 export class FleetService {
@@ -17,9 +18,10 @@ export class FleetService {
 
   // ── Vehicles ──────────────────────────────────────────────────────────────
 
-  getVehicles(): Promise<{ tenantId: string; items: FleetVehicleResponse[] }> {
+  getVehicles(page = 1, pageSize = 20): Promise<PagedResponse<FleetVehicleResponse>> {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
     return firstValueFrom(
-      this.http.get<{ tenantId: string; items: FleetVehicleResponse[] }>('/api/fleet/vehicles')
+      this.http.get<PagedResponse<FleetVehicleResponse>>('/api/fleet/vehicles', { params })
     );
   }
 
@@ -59,9 +61,10 @@ export class FleetService {
 
   // ── Drivers ───────────────────────────────────────────────────────────────
 
-  getDrivers(): Promise<{ tenantId: string; items: DriverResponse[] }> {
+  getDrivers(page = 1, pageSize = 20): Promise<PagedResponse<DriverResponse>> {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
     return firstValueFrom(
-      this.http.get<{ tenantId: string; items: DriverResponse[] }>('/api/fleet/drivers')
+      this.http.get<PagedResponse<DriverResponse>>('/api/fleet/drivers', { params })
     );
   }
 

@@ -7,6 +7,7 @@ import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
 import { UserResponse } from '../../core/models/user.models';
+import { PaginationComponent } from '../../shared/components/pagination.component';
 
 const ROLES = ['Tenant Admin', 'Dispatcher', 'Yard Manager'] as const;
 
@@ -19,7 +20,7 @@ interface EditState {
 @Component({
   selector: 'app-users-page',
   standalone: true,
-  imports: [FormsModule, NgClass],
+  imports: [FormsModule, NgClass, PaginationComponent],
   templateUrl: './users-page.component.html',
   styleUrl: './users-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -34,6 +35,10 @@ export class UsersPageComponent implements OnInit {
   protected readonly users      = signal<UserResponse[]>([]);
   protected readonly isLoading  = signal(true);
   protected readonly error      = signal<string | null>(null);
+
+  protected currentPage = 1;
+  protected totalPages  = 1;
+  protected readonly pageSize = 20;
   protected readonly showCreate = signal(false);
   protected readonly editingId  = signal<number | null>(null);
   protected readonly savingId   = signal<number | null>(null);
@@ -55,12 +60,18 @@ export class UsersPageComponent implements OnInit {
     await this.load();
   }
 
+  protected async onPage(page: number): Promise<void> {
+    this.currentPage = page;
+    await this.load();
+  }
+
   private async load(): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
     try {
-      const users = await this.userService.getUsers();
-      this.users.set(users);
+      const result = await this.userService.getUsers(this.currentPage, this.pageSize);
+      this.users.set(result.items);
+      this.totalPages = result.totalPages;
     } catch {
       this.error.set('Failed to load users.');
     } finally {

@@ -301,6 +301,11 @@
             }
           </tbody>
         </table>
+        <app-pagination
+          [currentPage]="activeTab() === 'vehicles' ? vehiclePage : driverPage"
+          [totalPages]="activeTab() === 'vehicles' ? vehicleTotalPages : driverTotalPages"
+          (pageChange)="activeTab() === 'vehicles' ? onVehiclePage($event) : onDriverPage($event)">
+        </app-pagination>
       </div>
     }
   }

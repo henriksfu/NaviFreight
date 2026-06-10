@@ -12,15 +12,10 @@ public static class FleetEndpoints
             .WithTags("Fleet")
             .RequireAuthorization();
 
-        group.MapGet("/vehicles", async (HttpContext context, IOperationsDataService operations, CancellationToken cancellationToken) =>
+        group.MapGet("/vehicles", async (HttpContext context, IOperationsDataService operations, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default) =>
         {
             var tenant = context.GetTenantContext();
-
-            return Results.Ok(new
-            {
-                tenantId = tenant.TenantId,
-                items = await operations.GetFleetAsync(tenant.TenantId, cancellationToken)
-            });
+            return Results.Ok(await operations.GetFleetAsync(tenant.TenantId, page, pageSize, cancellationToken));
         });
 
         group.MapGet("/vehicles/{vehicleId}", async (HttpContext context, string vehicleId, IOperationsDataService operations, CancellationToken cancellationToken) =>
@@ -87,14 +82,10 @@ public static class FleetEndpoints
         })
         .RequireAuthorization("DispatchWrite");
 
-        group.MapGet("/drivers", async (HttpContext context, IOperationsDataService operations, CancellationToken cancellationToken) =>
+        group.MapGet("/drivers", async (HttpContext context, IOperationsDataService operations, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default) =>
         {
             var tenant = context.GetTenantContext();
-            return Results.Ok(new
-            {
-                tenantId = tenant.TenantId,
-                items = await operations.GetDriversAsync(tenant.TenantId, cancellationToken)
-            });
+            return Results.Ok(await operations.GetDriversAsync(tenant.TenantId, page, pageSize, cancellationToken));
         });
 
         group.MapGet("/drivers/{driverId:int}", async (HttpContext context, int driverId, IOperationsDataService operations, CancellationToken cancellationToken) =>

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { AlertService } from '../../core/services/alert.service';
 import { AlertResponse, AlertStatus, AlertSeverity } from '../../core/models/alert.models';
+import { PaginationComponent } from '../../shared/components/pagination.component';
 
 type StatusFilter = 'All' | AlertStatus;
 type SeverityFilter = 'All' | AlertSeverity;
@@ -11,7 +12,7 @@ type SeverityFilter = 'All' | AlertSeverity;
 @Component({
   selector: 'app-alerts-page',
   standalone: true,
-  imports: [NgClass, FormsModule],
+  imports: [NgClass, FormsModule, PaginationComponent],
   templateUrl: './alerts-page.component.html',
   styleUrl: './alerts-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -32,6 +33,10 @@ export class AlertsPageComponent implements OnInit {
   protected readonly alerts = signal<AlertResponse[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly error = signal<string | null>(null);
+
+  protected currentPage  = 1;
+  protected totalPages   = 1;
+  protected readonly pageSize = 20;
 
   // Filters
   protected readonly statusFilter = signal<StatusFilter>('All');
@@ -100,11 +105,17 @@ export class AlertsPageComponent implements OnInit {
 
   protected setStatus(s: StatusFilter): void {
     this.statusFilter.set(s);
+    this.currentPage = 1;
     this.load(s === 'All' ? undefined : s);
   }
 
   protected setSeverity(s: SeverityFilter): void {
     this.severityFilter.set(s);
+  }
+
+  protected async onPage(page: number): Promise<void> {
+    this.currentPage = page;
+    await this.load(this.statusFilter() === 'All' ? undefined : this.statusFilter());
   }
 
   // ── Load ──────────────────────────────────────────────────────────────────
@@ -113,8 +124,9 @@ export class AlertsPageComponent implements OnInit {
     this.isLoading.set(true);
     this.error.set(null);
     try {
-      const result = await this.alertService.getAlerts(status);
+      const result = await this.alertService.getAlerts(status, undefined, this.currentPage, this.pageSize);
       this.alerts.set(result.items);
+      this.totalPages = result.totalPages;
     } catch {
       this.error.set('Failed to load alerts. Check that the backend is running.');
     } finally {

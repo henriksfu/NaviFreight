@@ -32,16 +32,21 @@ public sealed class SqlOperationsRepository(ISqlConnectionFactory connectionFact
             reader.GetInt32(reader.GetOrdinal("TrailerTurnaroundMinutes")));
     }
 
-    public async Task<IReadOnlyList<FleetVehicleResponse>> GetFleetAsync(string tenantId, CancellationToken cancellationToken = default)
+    public async Task<PagedResponse<FleetVehicleResponse>> GetFleetAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
         await using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync(cancellationToken);
-        await using var command = CreateStoredProcedure(connection, "dbo.usp_FleetVehicles", tenantId);
+        await using var command = new SqlCommand("dbo.usp_FleetVehicles", connection) { CommandType = CommandType.StoredProcedure };
+        command.AddTenantId(tenantId);
+        command.Parameters.Add(new SqlParameter("@Page",     SqlDbType.Int) { Value = page });
+        command.Parameters.Add(new SqlParameter("@PageSize", SqlDbType.Int) { Value = pageSize });
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
+        int totalCount = 0;
         var items = new List<FleetVehicleResponse>();
         while (await reader.ReadAsync(cancellationToken))
         {
+            if (items.Count == 0) totalCount = reader.GetInt32(reader.GetOrdinal("TotalCount"));
             items.Add(new FleetVehicleResponse(
                 reader.GetString(reader.GetOrdinal("VehicleId")),
                 reader.GetString(reader.GetOrdinal("DriverName")),
@@ -53,7 +58,7 @@ public sealed class SqlOperationsRepository(ISqlConnectionFactory connectionFact
                 reader.IsDBNull(reader.GetOrdinal("RouteCode")) ? string.Empty : reader.GetString(reader.GetOrdinal("RouteCode"))));
         }
 
-        return items;
+        return new PagedResponse<FleetVehicleResponse>(items, totalCount, page, pageSize);
     }
 
     public async Task<FleetVehicleDetailResponse?> GetVehicleByIdAsync(string tenantId, string vehicleId, CancellationToken cancellationToken = default)
@@ -166,20 +171,25 @@ public sealed class SqlOperationsRepository(ISqlConnectionFactory connectionFact
         return await GetVehicleByIdAsync(tenantId, vehicleId, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<DriverResponse>> GetDriversAsync(string tenantId, CancellationToken cancellationToken = default)
+    public async Task<PagedResponse<DriverResponse>> GetDriversAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
         await using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync(cancellationToken);
-        await using var command = CreateStoredProcedure(connection, "dbo.usp_Drivers", tenantId);
+        await using var command = new SqlCommand("dbo.usp_Drivers", connection) { CommandType = CommandType.StoredProcedure };
+        command.AddTenantId(tenantId);
+        command.Parameters.Add(new SqlParameter("@Page",     SqlDbType.Int) { Value = page });
+        command.Parameters.Add(new SqlParameter("@PageSize", SqlDbType.Int) { Value = pageSize });
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
+        int totalCount = 0;
         var items = new List<DriverResponse>();
         while (await reader.ReadAsync(cancellationToken))
         {
+            if (items.Count == 0) totalCount = reader.GetInt32(reader.GetOrdinal("TotalCount"));
             items.Add(MapDriver(reader));
         }
 
-        return items;
+        return new PagedResponse<DriverResponse>(items, totalCount, page, pageSize);
     }
 
     public async Task<DriverResponse?> GetDriverByIdAsync(string tenantId, int driverId, CancellationToken cancellationToken = default)
@@ -280,16 +290,21 @@ public sealed class SqlOperationsRepository(ISqlConnectionFactory connectionFact
         return items;
     }
 
-    public async Task<IReadOnlyList<RouteAssignmentResponse>> GetRoutesAsync(string tenantId, CancellationToken cancellationToken = default)
+    public async Task<PagedResponse<RouteAssignmentResponse>> GetRoutesAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
         await using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync(cancellationToken);
-        await using var command = CreateStoredProcedure(connection, "dbo.usp_RouteAssignments", tenantId);
+        await using var command = new SqlCommand("dbo.usp_RouteAssignments", connection) { CommandType = CommandType.StoredProcedure };
+        command.AddTenantId(tenantId);
+        command.Parameters.Add(new SqlParameter("@Page",     SqlDbType.Int) { Value = page });
+        command.Parameters.Add(new SqlParameter("@PageSize", SqlDbType.Int) { Value = pageSize });
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
+        int totalCount = 0;
         var items = new List<RouteAssignmentResponse>();
         while (await reader.ReadAsync(cancellationToken))
         {
+            if (items.Count == 0) totalCount = reader.GetInt32(reader.GetOrdinal("TotalCount"));
             items.Add(new RouteAssignmentResponse(
                 reader.GetString(reader.GetOrdinal("RouteCode")),
                 reader.GetString(reader.GetOrdinal("Origin")),
@@ -300,7 +315,7 @@ public sealed class SqlOperationsRepository(ISqlConnectionFactory connectionFact
                 reader.GetInt32(reader.GetOrdinal("CompletionPercent"))));
         }
 
-        return items;
+        return new PagedResponse<RouteAssignmentResponse>(items, totalCount, page, pageSize);
     }
 
     public async Task<RouteDetailResponse?> GetRouteByCodeAsync(string tenantId, string routeCode, CancellationToken cancellationToken = default)
@@ -786,21 +801,27 @@ public sealed class SqlOperationsRepository(ISqlConnectionFactory connectionFact
 
     // ── Alerts (full lifecycle) ───────────────────────────────────────────────
 
-    public async Task<IReadOnlyList<AlertResponse>> GetAlertListAsync(string tenantId, string? status = null, string? severity = null, CancellationToken cancellationToken = default)
+    public async Task<PagedResponse<AlertResponse>> GetAlertListAsync(string tenantId, string? status = null, string? severity = null, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
         await using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync(cancellationToken);
         await using var command = new SqlCommand("dbo.usp_AlertList", connection) { CommandType = CommandType.StoredProcedure };
         command.AddTenantId(tenantId);
-        command.Parameters.Add(new SqlParameter("@Status", SqlDbType.NVarChar, 20) { Value = status is null ? DBNull.Value : status });
+        command.Parameters.Add(new SqlParameter("@Status",   SqlDbType.NVarChar, 20) { Value = status is null ? DBNull.Value : status });
         command.Parameters.Add(new SqlParameter("@Severity", SqlDbType.NVarChar, 50) { Value = severity is null ? DBNull.Value : severity });
+        command.Parameters.Add(new SqlParameter("@Page",     SqlDbType.Int) { Value = page });
+        command.Parameters.Add(new SqlParameter("@PageSize", SqlDbType.Int) { Value = pageSize });
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        int totalCount = 0;
         var items = new List<AlertResponse>();
         while (await reader.ReadAsync(cancellationToken))
+        {
+            if (items.Count == 0) totalCount = reader.GetInt32(reader.GetOrdinal("TotalCount"));
             items.Add(MapAlert(reader));
+        }
 
-        return items;
+        return new PagedResponse<AlertResponse>(items, totalCount, page, pageSize);
     }
 
     public async Task<AlertResponse?> GetAlertDetailAsync(string tenantId, int alertId, CancellationToken cancellationToken = default)
@@ -938,7 +959,7 @@ public sealed class SqlOperationsRepository(ISqlConnectionFactory connectionFact
             reader.GetDateTime(reader.GetOrdinal("CreatedUtc")),
             reader.IsDBNull(reader.GetOrdinal("UpdatedUtc")) ? null : reader.GetDateTime(reader.GetOrdinal("UpdatedUtc")));
 
-    public async Task<IReadOnlyList<UserResponse>> GetUsersAsync(string tenantId, CancellationToken cancellationToken = default)
+    public async Task<PagedResponse<UserResponse>> GetUsersAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
         await using var conn = connectionFactory.CreateConnection();
         await conn.OpenAsync(cancellationToken);
@@ -946,11 +967,17 @@ public sealed class SqlOperationsRepository(ISqlConnectionFactory connectionFact
         cmd.CommandText = "dbo.usp_UserList";
         cmd.CommandType = System.Data.CommandType.StoredProcedure;
         cmd.Parameters.AddWithValue("@TenantId", tenantId);
+        cmd.Parameters.Add(new SqlParameter("@Page",     SqlDbType.Int) { Value = page });
+        cmd.Parameters.Add(new SqlParameter("@PageSize", SqlDbType.Int) { Value = pageSize });
         await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        int totalCount = 0;
         var results = new List<UserResponse>();
         while (await reader.ReadAsync(cancellationToken))
+        {
+            if (results.Count == 0) totalCount = reader.GetInt32(reader.GetOrdinal("TotalCount"));
             results.Add(MapUser(reader));
-        return results;
+        }
+        return new PagedResponse<UserResponse>(results, totalCount, page, pageSize);
     }
 
     public async Task<UserResponse> CreateUserAsync(string tenantId, CreateUserRequest request, string passwordHash, CancellationToken cancellationToken = default)

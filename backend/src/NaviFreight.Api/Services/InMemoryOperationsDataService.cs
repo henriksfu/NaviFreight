@@ -17,22 +17,25 @@ public sealed class InMemoryOperationsDataService : IOperationsDataService
             TrailerTurnaroundMinutes: 44));
     }
 
-    public Task<IReadOnlyList<FleetVehicleResponse>> GetFleetAsync(string tenantId, CancellationToken cancellationToken = default)
+    private IReadOnlyList<FleetVehicleResponse> AllFleet() =>
+    [
+        new("VH-1042", "Ava Patel",   "In Transit",       "Seattle North",   DateTime.UtcNow.AddMinutes(-8),  DateTime.UtcNow.AddHours(2), 89, "NW-14"),
+        new("VH-1188", "Marcus Gray", "At Dock",           "Portland East",   DateTime.UtcNow.AddMinutes(-15), null,                        74, "OR-07"),
+        new("VH-1211", "Nina Chen",   "Awaiting Dispatch", "Seattle North",   DateTime.UtcNow.AddMinutes(-4),  DateTime.UtcNow.AddHours(3), 62, "PN-22"),
+        new("VH-1305", "Ethan Ross",  "Delayed",           "Portland East",   DateTime.UtcNow.AddMinutes(-22), DateTime.UtcNow.AddHours(4), 51, "OR-03"),
+        new("VH-1417", "Lena Brooks", "In Transit",        "Oakland Gateway", DateTime.UtcNow.AddMinutes(-2),  DateTime.UtcNow.AddHours(1), 93, "CA-11")
+    ];
+
+    public Task<PagedResponse<FleetVehicleResponse>> GetFleetAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<FleetVehicleResponse> items =
-        [
-            new("VH-1042", "Ava Patel", "In Transit", "Seattle North", DateTime.UtcNow.AddMinutes(-8), DateTime.UtcNow.AddHours(2), 89, "NW-14"),
-            new("VH-1188", "Marcus Gray", "At Dock", "Portland East", DateTime.UtcNow.AddMinutes(-15), null, 74, "OR-07"),
-            new("VH-1211", "Nina Chen", "Awaiting Dispatch", "Seattle North", DateTime.UtcNow.AddMinutes(-4), DateTime.UtcNow.AddHours(3), 62, "PN-22"),
-            new("VH-1305", "Ethan Ross", "Delayed", "Portland East", DateTime.UtcNow.AddMinutes(-22), DateTime.UtcNow.AddHours(4), 51, "OR-03"),
-            new("VH-1417", "Lena Brooks", "In Transit", "Oakland Gateway", DateTime.UtcNow.AddMinutes(-2), DateTime.UtcNow.AddHours(1), 93, "CA-11")
-        ];
-        return Task.FromResult(items);
+        var all = AllFleet();
+        var items = all.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        return Task.FromResult(new PagedResponse<FleetVehicleResponse>(items, all.Count, page, pageSize));
     }
 
     public async Task<FleetVehicleDetailResponse?> GetVehicleByIdAsync(string tenantId, string vehicleId, CancellationToken cancellationToken = default)
     {
-        var vehicle = (await GetFleetAsync(tenantId, cancellationToken))
+        var vehicle = AllFleet()
             .FirstOrDefault(item => item.VehicleId.Equals(vehicleId, StringComparison.OrdinalIgnoreCase));
 
         return vehicle is null
@@ -116,21 +119,24 @@ public sealed class InMemoryOperationsDataService : IOperationsDataService
             : current with { DriverId = null, DriverName = "Unassigned", IsDispatchReady = false };
     }
 
-    public Task<IReadOnlyList<DriverResponse>> GetDriversAsync(string tenantId, CancellationToken cancellationToken = default)
+    private IReadOnlyList<DriverResponse> AllDrivers() =>
+    [
+        new(1, "Ava Patel",   "DL-SEA-1004", "Assigned", "VH-1042"),
+        new(2, "Marcus Gray", "DL-PDX-4411", "Assigned", "VH-1188"),
+        new(3, "Nina Chen",   "DL-SEA-8821", "Standby",  "VH-1211"),
+        new(4, "Ethan Ross",  "DL-PDX-1990", "Delayed",  "VH-1305"),
+        new(5, "Lena Brooks", "DL-OAK-5518", "Assigned", "VH-1417")
+    ];
+
+    public Task<PagedResponse<DriverResponse>> GetDriversAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<DriverResponse> items =
-        [
-            new(1, "Ava Patel", "DL-SEA-1004", "Assigned", "VH-1042"),
-            new(2, "Marcus Gray", "DL-PDX-4411", "Assigned", "VH-1188"),
-            new(3, "Nina Chen", "DL-SEA-8821", "Standby", "VH-1211"),
-            new(4, "Ethan Ross", "DL-PDX-1990", "Delayed", "VH-1305"),
-            new(5, "Lena Brooks", "DL-OAK-5518", "Assigned", "VH-1417")
-        ];
-        return Task.FromResult(items);
+        var all = AllDrivers();
+        var items = all.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        return Task.FromResult(new PagedResponse<DriverResponse>(items, all.Count, page, pageSize));
     }
 
-    public async Task<DriverResponse?> GetDriverByIdAsync(string tenantId, int driverId, CancellationToken cancellationToken = default)
-        => (await GetDriversAsync(tenantId, cancellationToken)).FirstOrDefault(item => item.DriverId == driverId);
+    public Task<DriverResponse?> GetDriverByIdAsync(string tenantId, int driverId, CancellationToken cancellationToken = default)
+        => Task.FromResult(AllDrivers().FirstOrDefault(item => item.DriverId == driverId));
 
     public Task<DriverResponse> CreateDriverAsync(string tenantId, CreateDriverRequest request, CancellationToken cancellationToken = default)
         => Task.FromResult(new DriverResponse(99, request.FullName, request.LicenseNumber, request.AvailabilityStatus, null));
@@ -275,20 +281,23 @@ public sealed class InMemoryOperationsDataService : IOperationsDataService
 
     // ── Routes ────────────────────────────────────────────────────────────────
 
-    public Task<IReadOnlyList<RouteAssignmentResponse>> GetRoutesAsync(string tenantId, CancellationToken cancellationToken = default)
+    private IReadOnlyList<RouteAssignmentResponse> AllRoutes() =>
+    [
+        new("NW-14", "Seattle North",   "Spokane Hub",       "On Schedule", 5, DateTime.UtcNow.AddMinutes(35),  68),
+        new("OR-03", "Portland East",   "Boise Crossdock",   "Delayed",     3, DateTime.UtcNow.AddMinutes(75),  42),
+        new("CA-11", "Oakland Gateway", "Reno Freight Park", "At Risk",     4, DateTime.UtcNow.AddMinutes(130), 57)
+    ];
+
+    public Task<PagedResponse<RouteAssignmentResponse>> GetRoutesAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<RouteAssignmentResponse> items =
-        [
-            new("NW-14", "Seattle North", "Spokane Hub", "On Schedule", 5, DateTime.UtcNow.AddMinutes(35), 68),
-            new("OR-03", "Portland East", "Boise Crossdock", "Delayed", 3, DateTime.UtcNow.AddMinutes(75), 42),
-            new("CA-11", "Oakland Gateway", "Reno Freight Park", "At Risk", 4, DateTime.UtcNow.AddMinutes(130), 57)
-        ];
-        return Task.FromResult(items);
+        var all = AllRoutes();
+        var items = all.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        return Task.FromResult(new PagedResponse<RouteAssignmentResponse>(items, all.Count, page, pageSize));
     }
 
-    public async Task<RouteDetailResponse?> GetRouteByCodeAsync(string tenantId, string routeCode, CancellationToken cancellationToken = default)
+    public Task<RouteDetailResponse?> GetRouteByCodeAsync(string tenantId, string routeCode, CancellationToken cancellationToken = default)
     {
-        var route = (await GetRoutesAsync(tenantId, cancellationToken))
+        var route = AllRoutes()
             .FirstOrDefault(item => item.RouteCode.Equals(routeCode, StringComparison.OrdinalIgnoreCase));
 
         if (route is null)
@@ -296,7 +305,7 @@ public sealed class InMemoryOperationsDataService : IOperationsDataService
             return null;
         }
 
-        var assignedVehicles = (await GetFleetAsync(tenantId, cancellationToken))
+        var assignedVehicles = AllFleet()
             .Where(vehicle => vehicle.RouteCode.Equals(routeCode, StringComparison.OrdinalIgnoreCase))
             .Select(vehicle => new RouteDispatchAssignmentResponse(
                 vehicle.VehicleId,
@@ -357,10 +366,10 @@ public sealed class InMemoryOperationsDataService : IOperationsDataService
         return Task.FromResult(items);
     }
 
-    public Task<IReadOnlyList<AlertResponse>> GetAlertListAsync(string tenantId, string? status = null, string? severity = null, CancellationToken cancellationToken = default)
+    private IReadOnlyList<AlertResponse> AllAlerts()
     {
         var now = DateTime.UtcNow;
-        IReadOnlyList<AlertResponse> all =
+        return
         [
             new(1, "Critical", "Trailer queue exceeding target",
                 "Oakland Gateway has remained above 7 inbound trailers for 35 minutes.",
@@ -382,21 +391,23 @@ public sealed class InMemoryOperationsDataService : IOperationsDataService
                 "Platform", "Active", true, now.AddMinutes(-12),
                 null, null, null, null, null, null)
         ];
+    }
 
-        var filtered = all.AsEnumerable();
+    public Task<PagedResponse<AlertResponse>> GetAlertListAsync(string tenantId, string? status = null, string? severity = null, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
+    {
+        var filtered = AllAlerts().AsEnumerable();
         if (status is not null)
             filtered = filtered.Where(a => a.Status.Equals(status, StringComparison.OrdinalIgnoreCase));
         if (severity is not null)
             filtered = filtered.Where(a => a.Severity.Equals(severity, StringComparison.OrdinalIgnoreCase));
 
-        return Task.FromResult<IReadOnlyList<AlertResponse>>(filtered.ToList());
+        var list = filtered.ToList();
+        var items = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        return Task.FromResult(new PagedResponse<AlertResponse>(items, list.Count, page, pageSize));
     }
 
-    public async Task<AlertResponse?> GetAlertDetailAsync(string tenantId, int alertId, CancellationToken cancellationToken = default)
-    {
-        var all = await GetAlertListAsync(tenantId, cancellationToken: cancellationToken);
-        return all.FirstOrDefault(a => a.AlertEventId == alertId);
-    }
+    public Task<AlertResponse?> GetAlertDetailAsync(string tenantId, int alertId, CancellationToken cancellationToken = default)
+        => Task.FromResult(AllAlerts().FirstOrDefault(a => a.AlertEventId == alertId));
 
     public Task<AlertResponse> CreateAlertAsync(string tenantId, CreateAlertRequest request, CancellationToken cancellationToken = default)
     {
@@ -500,19 +511,17 @@ public sealed class InMemoryOperationsDataService : IOperationsDataService
 
     public async Task<OperationalOverviewResponse> GetOverviewAsync(string tenantId, CancellationToken cancellationToken = default)
     {
-        var summary = await GetSummaryAsync(tenantId, cancellationToken);
-        var fleet = await GetFleetAsync(tenantId, cancellationToken);
-        var yards = await GetYardsAsync(tenantId, cancellationToken);
-        var routes = await GetRoutesAsync(tenantId, cancellationToken);
-        var alerts = await GetAlertsAsync(tenantId, cancellationToken);
-        var reports = await GetReportsAsync(tenantId, cancellationToken);
+        var summary  = await GetSummaryAsync(tenantId, cancellationToken);
+        var yards    = await GetYardsAsync(tenantId, cancellationToken);
+        var alerts   = await GetAlertsAsync(tenantId, cancellationToken);
+        var reports  = await GetReportsAsync(tenantId, cancellationToken);
         var settings = await GetSettingsAsync(tenantId, cancellationToken);
 
         return new OperationalOverviewResponse(
             summary,
-            fleet,
+            AllFleet(),
             yards,
-            routes,
+            AllRoutes(),
             alerts,
             reports,
             settings);
@@ -545,38 +554,37 @@ public sealed class InMemoryOperationsDataService : IOperationsDataService
             TotalYards: 3, AvgYardOccupancyPercent: 72));
     }
 
-    public Task<IReadOnlyList<UserResponse>> GetUsersAsync(string tenantId, CancellationToken cancellationToken = default)
+    private IReadOnlyList<UserResponse> AllUsers() =>
+    [
+        new(1, "morgan.ellis@atlasmeridian.example", "Morgan Ellis", "Tenant Admin", true,  DateTime.UtcNow.AddMonths(-6)),
+        new(2, "priya.shah@atlasmeridian.example",   "Priya Shah",   "Dispatcher",   true,  DateTime.UtcNow.AddMonths(-4)),
+        new(3, "darius.cole@atlasmeridian.example",  "Darius Cole",  "Yard Manager", true,  DateTime.UtcNow.AddMonths(-2))
+    ];
+
+    public Task<PagedResponse<UserResponse>> GetUsersAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<UserResponse> users =
-        [
-            new(1, "morgan.ellis@atlasmeridian.example", "Morgan Ellis", "Tenant Admin",  true, DateTime.UtcNow.AddMonths(-6)),
-            new(2, "priya.shah@atlasmeridian.example",   "Priya Shah",   "Dispatcher",    true, DateTime.UtcNow.AddMonths(-4)),
-            new(3, "darius.cole@atlasmeridian.example",  "Darius Cole",  "Yard Manager",  true, DateTime.UtcNow.AddMonths(-2))
-        ];
-        return Task.FromResult(users);
+        var all = AllUsers();
+        var items = all.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        return Task.FromResult(new PagedResponse<UserResponse>(items, all.Count, page, pageSize));
     }
 
-    public async Task<UserResponse> CreateUserAsync(string tenantId, CreateUserRequest request, string passwordHash, CancellationToken cancellationToken = default)
+    public Task<UserResponse> CreateUserAsync(string tenantId, CreateUserRequest request, string passwordHash, CancellationToken cancellationToken = default)
     {
-        var users = await GetUsersAsync(tenantId, cancellationToken);
-        return new UserResponse(users.Count + 1, request.Email, request.DisplayName, request.Role, true, DateTime.UtcNow);
+        return Task.FromResult(new UserResponse(AllUsers().Count + 1, request.Email, request.DisplayName, request.Role, true, DateTime.UtcNow));
     }
 
-    public async Task<UserResponse?> UpdateUserAsync(string tenantId, int userId, UpdateUserRequest request, string? newPasswordHash, CancellationToken cancellationToken = default)
+    public Task<UserResponse?> UpdateUserAsync(string tenantId, int userId, UpdateUserRequest request, string? newPasswordHash, CancellationToken cancellationToken = default)
     {
-        var user = (await GetUsersAsync(tenantId, cancellationToken)).FirstOrDefault(u => u.UserId == userId);
+        var user = AllUsers().FirstOrDefault(u => u.UserId == userId);
         return user is null ? null : user with { DisplayName = request.DisplayName, Role = request.Role };
     }
 
-    public async Task<bool> DeactivateUserAsync(string tenantId, int userId, CancellationToken cancellationToken = default)
-    {
-        var users = await GetUsersAsync(tenantId, cancellationToken);
-        return users.Any(u => u.UserId == userId);
-    }
+    public Task<bool> DeactivateUserAsync(string tenantId, int userId, CancellationToken cancellationToken = default)
+        => Task.FromResult(AllUsers().Any(u => u.UserId == userId));
 
-    public async Task<UserResponse?> ReactivateUserAsync(string tenantId, int userId, CancellationToken cancellationToken = default)
+    public Task<UserResponse?> ReactivateUserAsync(string tenantId, int userId, CancellationToken cancellationToken = default)
     {
-        var user = (await GetUsersAsync(tenantId, cancellationToken)).FirstOrDefault(u => u.UserId == userId);
-        return user is null ? null : user with { IsActive = true };
+        var user = AllUsers().FirstOrDefault(u => u.UserId == userId);
+        return Task.FromResult(user is null ? null : user with { IsActive = true });
     }
 }

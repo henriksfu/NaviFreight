@@ -21,7 +21,9 @@ public static class AlertEndpoints
             IOperationsDataService operations,
             string? status,
             string? severity,
-            CancellationToken ct) =>
+            int page = 1,
+            int pageSize = 20,
+            CancellationToken ct = default) =>
         {
             var tenant = context.GetTenantContext();
 
@@ -37,11 +39,7 @@ public static class AlertEndpoints
                     ["severity"] = [$"Severity must be one of: {string.Join(", ", ValidSeverities)}."]
                 });
 
-            return Results.Ok(new
-            {
-                tenantId = tenant.TenantId,
-                items = await operations.GetAlertListAsync(tenant.TenantId, status, severity, ct)
-            });
+            return Results.Ok(await operations.GetAlertListAsync(tenant.TenantId, status, severity, page, pageSize, ct));
         });
 
         // ── Detail ────────────────────────────────────────────────────────

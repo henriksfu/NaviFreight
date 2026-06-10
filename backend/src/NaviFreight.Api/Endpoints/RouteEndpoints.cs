@@ -12,15 +12,10 @@ public static class RouteEndpoints
             .WithTags("Routes")
             .RequireAuthorization();
 
-        group.MapGet("/", async (HttpContext context, IOperationsDataService operations, CancellationToken cancellationToken) =>
+        group.MapGet("/", async (HttpContext context, IOperationsDataService operations, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default) =>
         {
             var tenant = context.GetTenantContext();
-
-            return Results.Ok(new
-            {
-                tenantId = tenant.TenantId,
-                items = await operations.GetRoutesAsync(tenant.TenantId, cancellationToken)
-            });
+            return Results.Ok(await operations.GetRoutesAsync(tenant.TenantId, page, pageSize, cancellationToken));
         });
 
         group.MapGet("/{routeCode}", async (HttpContext context, string routeCode, IOperationsDataService operations, CancellationToken cancellationToken) =>

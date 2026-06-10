@@ -182,5 +182,6 @@
         </article>
       }
     </div>
+    <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPage($event)"></app-pagination>
   }
 </section>

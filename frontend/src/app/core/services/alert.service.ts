@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
   AlertResponse,
@@ -8,17 +8,18 @@ import {
   ResolveAlertRequest,
   UpdateAlertOwnerRequest
 } from '../models/alert.models';
+import { PagedResponse } from '../models/paged-response';
 
 @Injectable({ providedIn: 'root' })
 export class AlertService {
   private readonly http = inject(HttpClient);
 
-  getAlerts(status?: string, severity?: string): Promise<{ tenantId: string; items: AlertResponse[] }> {
-    const params: Record<string, string> = {};
-    if (status) params['status'] = status;
-    if (severity) params['severity'] = severity;
+  getAlerts(status?: string, severity?: string, page = 1, pageSize = 20): Promise<PagedResponse<AlertResponse>> {
+    let params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    if (status)   params = params.set('status', status);
+    if (severity) params = params.set('severity', severity);
     return firstValueFrom(
-      this.http.get<{ tenantId: string; items: AlertResponse[] }>('/api/alerts', { params })
+      this.http.get<PagedResponse<AlertResponse>>('/api/alerts', { params })
     );
   }
 

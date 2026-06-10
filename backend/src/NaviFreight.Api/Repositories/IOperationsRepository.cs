@@ -6,14 +6,14 @@ namespace NaviFreight.Api.Repositories;
 public interface IOperationsRepository
 {
     Task<DashboardSummaryResponse> GetSummaryAsync(string tenantId, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<FleetVehicleResponse>> GetFleetAsync(string tenantId, CancellationToken cancellationToken = default);
+    Task<PagedResponse<FleetVehicleResponse>> GetFleetAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
     Task<FleetVehicleDetailResponse?> GetVehicleByIdAsync(string tenantId, string vehicleId, CancellationToken cancellationToken = default);
     Task<FleetVehicleDetailResponse> CreateVehicleAsync(string tenantId, CreateVehicleRequest request, CancellationToken cancellationToken = default);
     Task<FleetVehicleDetailResponse?> UpdateVehicleAsync(string tenantId, string vehicleId, UpdateVehicleRequest request, CancellationToken cancellationToken = default);
     Task<bool> DeleteVehicleAsync(string tenantId, string vehicleId, CancellationToken cancellationToken = default);
     Task<FleetVehicleDetailResponse?> AssignDriverAsync(string tenantId, string vehicleId, int driverId, CancellationToken cancellationToken = default);
     Task<FleetVehicleDetailResponse?> UnassignDriverAsync(string tenantId, string vehicleId, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<DriverResponse>> GetDriversAsync(string tenantId, CancellationToken cancellationToken = default);
+    Task<PagedResponse<DriverResponse>> GetDriversAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
     Task<DriverResponse?> GetDriverByIdAsync(string tenantId, int driverId, CancellationToken cancellationToken = default);
     Task<DriverResponse> CreateDriverAsync(string tenantId, CreateDriverRequest request, CancellationToken cancellationToken = default);
     Task<DriverResponse?> UpdateDriverAsync(string tenantId, int driverId, UpdateDriverRequest request, CancellationToken cancellationToken = default);
@@ -39,7 +39,7 @@ public interface IOperationsRepository
     Task<DockResponse?> AssignVehicleToDockAsync(string tenantId, int yardId, int dockId, string vehicleId, CancellationToken cancellationToken = default);
     Task<DockResponse?> ReleaseDockAsync(string tenantId, int yardId, int dockId, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<RouteAssignmentResponse>> GetRoutesAsync(string tenantId, CancellationToken cancellationToken = default);
+    Task<PagedResponse<RouteAssignmentResponse>> GetRoutesAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
     Task<RouteDetailResponse?> GetRouteByCodeAsync(string tenantId, string routeCode, CancellationToken cancellationToken = default);
     Task<RouteAssignmentResponse> CreateRouteAsync(string tenantId, CreateRouteRequest request, CancellationToken cancellationToken = default);
     Task<RouteAssignmentResponse?> UpdateRouteAsync(string tenantId, string routeCode, UpdateRouteRequest request, CancellationToken cancellationToken = default);
@@ -51,7 +51,7 @@ public interface IOperationsRepository
     Task<IReadOnlyList<AlertItemResponse>> GetAlertsAsync(string tenantId, CancellationToken cancellationToken = default);
 
     // Alerts — full CRUD + lifecycle
-    Task<IReadOnlyList<AlertResponse>> GetAlertListAsync(string tenantId, string? status = null, string? severity = null, CancellationToken cancellationToken = default);
+    Task<PagedResponse<AlertResponse>> GetAlertListAsync(string tenantId, string? status = null, string? severity = null, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
     Task<AlertResponse?> GetAlertDetailAsync(string tenantId, int alertId, CancellationToken cancellationToken = default);
     Task<AlertResponse> CreateAlertAsync(string tenantId, CreateAlertRequest request, CancellationToken cancellationToken = default);
     Task<AlertResponse?> AcknowledgeAlertAsync(string tenantId, int alertId, AcknowledgeAlertRequest request, CancellationToken cancellationToken = default);
@@ -71,7 +71,7 @@ public interface IOperationsRepository
     Task<ReportSummaryResponse> GetReportSummaryAsync(string tenantId, DateTime from, DateTime to, CancellationToken cancellationToken = default);
 
     // Users
-    Task<IReadOnlyList<UserResponse>> GetUsersAsync(string tenantId, CancellationToken cancellationToken = default);
+    Task<PagedResponse<UserResponse>> GetUsersAsync(string tenantId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default);
     Task<UserResponse> CreateUserAsync(string tenantId, CreateUserRequest request, string passwordHash, CancellationToken cancellationToken = default);
     Task<UserResponse?> UpdateUserAsync(string tenantId, int userId, UpdateUserRequest request, string? newPasswordHash, CancellationToken cancellationToken = default);
     Task<bool> DeactivateUserAsync(string tenantId, int userId, CancellationToken cancellationToken = default);

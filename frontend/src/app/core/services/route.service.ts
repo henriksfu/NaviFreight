@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
   RouteAssignmentResponse,
@@ -7,14 +7,16 @@ import {
   CreateRouteRequest,
   UpdateRouteRequest
 } from '../models/route.models';
+import { PagedResponse } from '../models/paged-response';
 
 @Injectable({ providedIn: 'root' })
 export class RouteService {
   private readonly http = inject(HttpClient);
 
-  getRoutes(): Promise<{ tenantId: string; items: RouteAssignmentResponse[] }> {
+  getRoutes(page = 1, pageSize = 20): Promise<PagedResponse<RouteAssignmentResponse>> {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
     return firstValueFrom(
-      this.http.get<{ tenantId: string; items: RouteAssignmentResponse[] }>('/api/routes')
+      this.http.get<PagedResponse<RouteAssignmentResponse>>('/api/routes', { params })
     );
   }
 

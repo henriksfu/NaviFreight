@@ -129,5 +129,6 @@
         <div class="table-empty">No users found for this tenant.</div>
       }
     </div>
+    <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPage($event)"></app-pagination>
   }
 </div>

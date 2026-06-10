@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { RouteService } from '../../core/services/route.service';
 import { RouteAssignmentResponse, RouteDispatchAssignmentResponse } from '../../core/models/route.models';
+import { PaginationComponent } from '../../shared/components/pagination.component';
 
 interface RouteWithDetail {
   route: RouteAssignmentResponse;
@@ -15,7 +16,7 @@ interface RouteWithDetail {
 @Component({
   selector: 'app-routes-page',
   standalone: true,
-  imports: [NgClass, FormsModule],
+  imports: [NgClass, FormsModule, PaginationComponent],
   templateUrl: './routes-page.component.html',
   styleUrl: './routes-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -33,6 +34,10 @@ export class RoutesPageComponent implements OnInit {
   protected readonly routes = signal<RouteWithDetail[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly error = signal<string | null>(null);
+
+  protected currentPage = 1;
+  protected totalPages  = 1;
+  protected readonly pageSize = 20;
 
   // Create form
   protected readonly showCreateForm = signal(false);
@@ -90,14 +95,20 @@ export class RoutesPageComponent implements OnInit {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
+  protected async onPage(page: number): Promise<void> {
+    this.currentPage = page;
+    await this.load();
+  }
+
   private async load(): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
     try {
-      const result = await this.routeService.getRoutes();
+      const result = await this.routeService.getRoutes(this.currentPage, this.pageSize);
       this.routes.set(result.items.map(r => ({
         route: r, expanded: false, assignedVehicles: null, loadingDetail: false
       })));
+      this.totalPages = result.totalPages;
     } catch {
       this.error.set('Failed to load routes. Check that the backend is running.');
     } finally {
