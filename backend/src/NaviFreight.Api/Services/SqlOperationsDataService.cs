@@ -141,6 +141,15 @@ public sealed class SqlOperationsDataService(IOperationsRepository operationsRep
     public Task<IReadOnlyList<SettingsSectionResponse>> GetSettingsAsync(string tenantId, CancellationToken cancellationToken = default)
         => operationsRepository.GetSettingsAsync(tenantId, cancellationToken);
 
+    public Task<IReadOnlyList<TenantSettingResponse>> GetTenantSettingsAsync(string tenantId, CancellationToken cancellationToken = default)
+        => operationsRepository.GetTenantSettingsAsync(tenantId, cancellationToken);
+
+    public Task<TenantSettingResponse> UpdateTenantSettingAsync(string tenantId, string key, string value, CancellationToken cancellationToken = default)
+        => operationsRepository.UpdateTenantSettingAsync(tenantId, key, value, cancellationToken);
+
+    public Task<ReportSummaryResponse> GetReportSummaryAsync(string tenantId, DateTime from, DateTime to, CancellationToken cancellationToken = default)
+        => operationsRepository.GetReportSummaryAsync(tenantId, from, to, cancellationToken);
+
     public Task<IReadOnlyList<UserResponse>> GetUsersAsync(string tenantId, CancellationToken cancellationToken = default)
         => operationsRepository.GetUsersAsync(tenantId, cancellationToken);
 

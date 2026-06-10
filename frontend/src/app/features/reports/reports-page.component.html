@@ -1,18 +1,143 @@
-<section class="page">
-  <header class="page-header">
+<div class="page">
+  <div class="page-header">
     <div>
-      <p class="page-kicker">Analytics</p>
-      <h2>Operational reporting snapshots</h2>
+      <div class="page-kicker">Analytics</div>
+      <h2>Operations Report</h2>
+      <p class="page-copy">Aggregated metrics across fleet, yards, routes, and alerts.</p>
     </div>
-  </header>
+  </div>
 
-  <div class="report-grid">
-    @for (report of dashboard().reports; track report.reportName) {
-      <article class="report-card">
-        <p>{{ report.reportName }}</p>
-        <strong>{{ report.value }}</strong>
-        <span>{{ report.changeLabel }}</span>
-      </article>
+  <!-- Date range controls -->
+  <div class="range-bar">
+    <div class="quick-ranges">
+      <button class="range-btn" [class.active]="activeRange() === '7d'"  (click)="selectRange('7d')">Last 7 days</button>
+      <button class="range-btn" [class.active]="activeRange() === '30d'" (click)="selectRange('30d')">Last 30 days</button>
+      <button class="range-btn" [class.active]="activeRange() === '90d'" (click)="selectRange('90d')">Last 90 days</button>
+      <button class="range-btn" [class.active]="activeRange() === 'custom'" (click)="selectRange('custom')">Custom</button>
+    </div>
+    @if (activeRange() === 'custom') {
+      <div class="custom-range">
+        <input type="date" [(ngModel)]="fromDate" />
+        <span class="range-sep">→</span>
+        <input type="date" [(ngModel)]="toDate" />
+        <button class="btn btn-primary btn-sm" type="button" (click)="applyCustomRange()">Apply</button>
+      </div>
     }
   </div>
-</section>
+
+  @if (error()) {
+    <div class="error-banner">{{ error() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-band"><span class="spinner"></span> Loading report...</div>
+  } @else if (summary(); as s) {
+    <!-- KPI band -->
+    <div class="kpi-band">
+      <div class="kpi-card">
+        <div class="kpi-val">{{ s.totalAlerts }}</div>
+        <div class="kpi-label">Total Alerts</div>
+        <div class="kpi-sub">{{ s.criticalAlerts }} critical</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val">{{ s.totalVehicles }}</div>
+        <div class="kpi-label">Fleet Size</div>
+        <div class="kpi-sub">{{ s.inTransitVehicles }} in transit</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val">{{ onTimePercent() }}%</div>
+        <div class="kpi-label">On-Time Routes</div>
+        <div class="kpi-sub">{{ s.onScheduleRoutes }} / {{ s.totalRoutes }} routes</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val">{{ s.avgYardOccupancyPercent }}%</div>
+        <div class="kpi-label">Avg Yard Occupancy</div>
+        <div class="kpi-sub">{{ s.totalYards }} yards tracked</div>
+      </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="charts-row">
+
+      <!-- Alerts by severity -->
+      <div class="chart-panel">
+        <div class="panel-title">Alerts by Severity</div>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <span class="bar-label">Critical</span>
+            <div class="bar-track">
+              <div class="bar-fill bar-critical" [style.width.%]="alertBarWidths().critical"></div>
+            </div>
+            <span class="bar-count">{{ s.criticalAlerts }}</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Warning</span>
+            <div class="bar-track">
+              <div class="bar-fill bar-warning" [style.width.%]="alertBarWidths().warning"></div>
+            </div>
+            <span class="bar-count">{{ s.warningAlerts }}</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Info</span>
+            <div class="bar-track">
+              <div class="bar-fill bar-info" [style.width.%]="alertBarWidths().info"></div>
+            </div>
+            <span class="bar-count">{{ s.infoAlerts }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fleet by status -->
+      <div class="chart-panel">
+        <div class="panel-title">Fleet by Status</div>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <span class="bar-label">In Transit</span>
+            <div class="bar-track">
+              <div class="bar-fill bar-transit" [style.width.%]="fleetBarWidths().transit"></div>
+            </div>
+            <span class="bar-count">{{ s.inTransitVehicles }}</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">At Dock</span>
+            <div class="bar-track">
+              <div class="bar-fill bar-dock" [style.width.%]="fleetBarWidths().dock"></div>
+            </div>
+            <span class="bar-count">{{ s.atDockVehicles }}</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Awaiting</span>
+            <div class="bar-track">
+              <div class="bar-fill bar-waiting" [style.width.%]="fleetBarWidths().waiting"></div>
+            </div>
+            <span class="bar-count">{{ s.awaitingDispatchVehicles }}</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Delayed</span>
+            <div class="bar-track">
+              <div class="bar-fill bar-delayed" [style.width.%]="fleetBarWidths().delayed"></div>
+            </div>
+            <span class="bar-count">{{ s.delayedVehicles }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Snapshot metrics -->
+    @if (snapshots().length > 0) {
+      <div class="snapshot-section">
+        <div class="section-label">Performance Snapshots</div>
+        <div class="snapshot-grid">
+          @for (snap of snapshots(); track snap.reportName) {
+            <div class="snapshot-card">
+              <div class="snap-name">{{ snap.reportName }}</div>
+              <div class="snap-val">{{ snap.value }}</div>
+              <div class="snap-trend">{{ snap.changeLabel }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

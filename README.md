@@ -31,11 +31,10 @@ A multi-tenant SaaS platform for enterprise freight and logistics operations. Na
 - **Real database** — SQL Server 2022 via Docker. Idempotent schema migrations, full demo seed data, 51 stored procedures covering all operations.
 - **Global Error Handling** — HTTP interceptor catches 401/403/5xx and network errors. Toast notifications render in the bottom-right corner with auto-dismiss. 401s trigger automatic logout and redirect to login.
 - **User Management** — Tenant Admin–only page to list, create, edit, deactivate, and reactivate users within the tenant. Role assignment (Tenant Admin / Dispatcher / Yard Manager), optional password reset on edit. Full backend CRUD via `/api/users` with SHA-256 password hashing.
+- **Settings Page** — Editable tenant configuration split into two cards: Tenant Profile (brand name, operational region, header mapping) and Dispatch Rules (auto-flag delay threshold, dock recompute interval, escalation window). Saves each section independently with parallel PUT requests. Backend upserts settings via `/api/settings/tenant/{key}`.
+- **Reports Page** — Operations analytics with quick-range selector (7d / 30d / 90d / custom date range). KPI band showing total alerts, fleet size, on-time route percentage, and average yard occupancy. Bar charts for alerts by severity and fleet by status. Performance snapshot grid. All metrics served by a single `/api/reports/summary` endpoint backed by a 4-result-set stored procedure.
 
 ### In Progress / Planned
-
-- **Settings Page** — Currently a static placeholder. Planned: tenant branding, notification preferences, API key management.
-- **Reports Page** — Currently shows seeded snapshots. Planned: date-range filters, CSV export, charts.
 - **Real-time Updates** — SignalR integration for live fleet position and alert push.
 - **Pagination** — Fleet, routes, and alerts are currently unbounded lists.
 - **Password Security Upgrade** — SHA-256 is dev-only. Production requires bcrypt or Argon2.
@@ -67,7 +66,7 @@ NaviFreight/
 ├── database/
 │   ├── schema/                # 5 idempotent migration scripts
 │   ├── seeds/                 # Demo data for all entities
-│   ├── stored-procedures/     # 46 stored procedures
+│   ├── stored-procedures/     # 59 stored procedures
 │   ├── init.sql               # Master script (runs schema + seeds + procs)
 │   └── setup-local.sh         # One-command local DB setup
 ├── docker-compose.yml         # SQL Server 2022 container
@@ -142,6 +141,15 @@ All endpoints require `Authorization: Bearer <token>` and `X-Tenant-Id` headers 
 | GET | `/api/routes` | List route assignments |
 | GET | `/api/alerts` | List alerts (filter by status/severity) |
 | GET | `/api/dashboard/summary` | KPI summary |
+| GET | `/api/users` | List users in tenant (Tenant Admin only) |
+| POST | `/api/users` | Create user (Tenant Admin only) |
+| PUT | `/api/users/{id}` | Update user (Tenant Admin only) |
+| DELETE | `/api/users/{id}` | Deactivate user (Tenant Admin only) |
+| POST | `/api/users/{id}/reactivate` | Reactivate user (Tenant Admin only) |
+| GET | `/api/settings/tenant` | Get all tenant settings |
+| PUT | `/api/settings/tenant/{key}` | Update one tenant setting |
+| GET | `/api/reports/summary` | Aggregated report (supports ?from=&to=) |
+| GET | `/api/reports/snapshots` | Performance snapshot metrics |
 | GET | `/health` | Health check |
 
 ---

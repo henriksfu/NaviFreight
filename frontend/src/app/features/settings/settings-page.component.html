@@ -1,21 +1,71 @@
-<section class="page">
-  <header class="page-header">
+<div class="page">
+  <div class="page-header">
     <div>
-      <p class="page-kicker">Administration</p>
-      <h2>Tenant and dispatch settings</h2>
+      <div class="page-kicker">Administration</div>
+      <h2>Settings</h2>
+      <p class="page-copy">Configure tenant profile and dispatch rules for this organisation.</p>
     </div>
-  </header>
-
-  <div class="settings-grid">
-    @for (section of dashboard().settings; track section.title) {
-      <article class="settings-card">
-        <h3>{{ section.title }}</h3>
-        <ul>
-          @for (item of section.items; track item) {
-            <li>{{ item }}</li>
-          }
-        </ul>
-      </article>
-    }
   </div>
-</section>
+
+  @if (error()) {
+    <div class="error-banner">{{ error() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-band"><span class="spinner"></span> Loading settings...</div>
+  } @else {
+    <div class="settings-grid">
+
+      <!-- Tenant Profile -->
+      <div class="settings-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Tenant Profile</div>
+            <div class="card-sub">Organisation identity and regional configuration.</div>
+          </div>
+        </div>
+        <div class="field-list">
+          @for (field of tenantFields; track field.key) {
+            <div class="field">
+              <label>{{ field.label }}</label>
+              <input [type]="field.type" [(ngModel)]="field.value" [placeholder]="field.placeholder ?? ''" />
+            </div>
+          }
+        </div>
+        <div class="card-footer">
+          <button class="btn btn-primary" type="button"
+            (click)="saveSection('tenant')"
+            [disabled]="savingSection() === 'tenant'">
+            {{ savingSection() === 'tenant' ? 'Saving...' : 'Save Profile' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Dispatch Rules -->
+      <div class="settings-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Dispatch Rules</div>
+            <div class="card-sub">Automation thresholds and escalation behaviour.</div>
+          </div>
+        </div>
+        <div class="field-list">
+          @for (field of ruleFields; track field.key) {
+            <div class="field">
+              <label>{{ field.label }}</label>
+              <input [type]="field.type" [(ngModel)]="field.value" [placeholder]="field.placeholder ?? ''" />
+            </div>
+          }
+        </div>
+        <div class="card-footer">
+          <button class="btn btn-primary" type="button"
+            (click)="saveSection('rules')"
+            [disabled]="savingSection() === 'rules'">
+            {{ savingSection() === 'rules' ? 'Saving...' : 'Save Rules' }}
+          </button>
+        </div>
+      </div>
+
+    </div>
+  }
+</div>

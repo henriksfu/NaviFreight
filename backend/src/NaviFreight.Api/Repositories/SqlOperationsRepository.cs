@@ -1015,6 +1015,84 @@ public sealed class SqlOperationsRepository(ISqlConnectionFactory connectionFact
         return MapUser(reader);
     }
 
+    public async Task<IReadOnlyList<TenantSettingResponse>> GetTenantSettingsAsync(string tenantId, CancellationToken cancellationToken = default)
+    {
+        await using var conn = connectionFactory.CreateConnection();
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "dbo.usp_TenantSettingsGet";
+        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@TenantId", tenantId);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        var results = new List<TenantSettingResponse>();
+        while (await reader.ReadAsync(cancellationToken))
+            results.Add(new TenantSettingResponse(reader.GetString(0), reader.GetString(1)));
+        return results;
+    }
+
+    public async Task<TenantSettingResponse> UpdateTenantSettingAsync(string tenantId, string key, string value, CancellationToken cancellationToken = default)
+    {
+        await using var conn = connectionFactory.CreateConnection();
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "dbo.usp_TenantSettingUpdate";
+        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@TenantId", tenantId);
+        cmd.Parameters.AddWithValue("@SettingKey", key);
+        cmd.Parameters.AddWithValue("@SettingValue", value);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        await reader.ReadAsync(cancellationToken);
+        return new TenantSettingResponse(reader.GetString(0), reader.GetString(1));
+    }
+
+    public async Task<ReportSummaryResponse> GetReportSummaryAsync(string tenantId, DateTime from, DateTime to, CancellationToken cancellationToken = default)
+    {
+        await using var conn = connectionFactory.CreateConnection();
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "dbo.usp_ReportSummary";
+        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@TenantId", tenantId);
+        cmd.Parameters.AddWithValue("@From", from);
+        cmd.Parameters.AddWithValue("@To", to);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+        // Result set 1: alerts
+        await reader.ReadAsync(cancellationToken);
+        var totalAlerts    = reader.GetInt32(0);
+        var criticalAlerts = reader.GetInt32(1);
+        var warningAlerts  = reader.GetInt32(2);
+        var infoAlerts     = reader.GetInt32(3);
+
+        // Result set 2: fleet
+        await reader.NextResultAsync(cancellationToken);
+        await reader.ReadAsync(cancellationToken);
+        var totalVehicles    = reader.GetInt32(0);
+        var inTransit        = reader.GetInt32(1);
+        var atDock           = reader.GetInt32(2);
+        var awaitingDispatch = reader.GetInt32(3);
+        var delayed          = reader.GetInt32(4);
+
+        // Result set 3: routes
+        await reader.NextResultAsync(cancellationToken);
+        await reader.ReadAsync(cancellationToken);
+        var totalRoutes  = reader.GetInt32(0);
+        var activeRoutes = reader.GetInt32(1);
+        var onSchedule   = reader.GetInt32(2);
+
+        // Result set 4: yards
+        await reader.NextResultAsync(cancellationToken);
+        await reader.ReadAsync(cancellationToken);
+        var totalYards  = reader.GetInt32(0);
+        var avgOccupancy = reader.IsDBNull(1) ? 0 : (int)reader.GetDouble(1);
+
+        return new ReportSummaryResponse(from, to,
+            totalAlerts, criticalAlerts, warningAlerts, infoAlerts,
+            totalVehicles, inTransit, atDock, awaitingDispatch, delayed,
+            totalRoutes, activeRoutes, onSchedule,
+            totalYards, avgOccupancy);
+    }
+
     private static UserResponse MapUser(SqlDataReader reader) =>
         new(
             reader.GetInt32(reader.GetOrdinal("UserId")),

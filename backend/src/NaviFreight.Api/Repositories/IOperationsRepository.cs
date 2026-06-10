@@ -63,6 +63,13 @@ public interface IOperationsRepository
     Task<IReadOnlyList<ReportSnapshotResponse>> GetReportsAsync(string tenantId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<SettingsSectionResponse>> GetSettingsAsync(string tenantId, CancellationToken cancellationToken = default);
 
+    // Settings (editable)
+    Task<IReadOnlyList<TenantSettingResponse>> GetTenantSettingsAsync(string tenantId, CancellationToken cancellationToken = default);
+    Task<TenantSettingResponse> UpdateTenantSettingAsync(string tenantId, string key, string value, CancellationToken cancellationToken = default);
+
+    // Reports summary
+    Task<ReportSummaryResponse> GetReportSummaryAsync(string tenantId, DateTime from, DateTime to, CancellationToken cancellationToken = default);
+
     // Users
     Task<IReadOnlyList<UserResponse>> GetUsersAsync(string tenantId, CancellationToken cancellationToken = default);
     Task<UserResponse> CreateUserAsync(string tenantId, CreateUserRequest request, string passwordHash, CancellationToken cancellationToken = default);

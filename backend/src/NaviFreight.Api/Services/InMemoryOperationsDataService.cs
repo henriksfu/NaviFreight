@@ -518,6 +518,33 @@ public sealed class InMemoryOperationsDataService : IOperationsDataService
             settings);
     }
 
+    public Task<IReadOnlyList<TenantSettingResponse>> GetTenantSettingsAsync(string tenantId, CancellationToken cancellationToken = default)
+    {
+        IReadOnlyList<TenantSettingResponse> settings =
+        [
+            new("Brand profile",                "Atlas Meridian Logistics"),
+            new("Default operational region",   "Pacific"),
+            new("Tenant header mapping",        "X-Tenant-Id"),
+            new("Auto-flag delays after",       "12 minutes"),
+            new("Recompute dock assignment every", "90 seconds"),
+            new("Escalate missed departure after", "2 failed retries")
+        ];
+        return Task.FromResult(settings);
+    }
+
+    public Task<TenantSettingResponse> UpdateTenantSettingAsync(string tenantId, string key, string value, CancellationToken cancellationToken = default)
+        => Task.FromResult(new TenantSettingResponse(key, value));
+
+    public Task<ReportSummaryResponse> GetReportSummaryAsync(string tenantId, DateTime from, DateTime to, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new ReportSummaryResponse(
+            From: from, To: to,
+            TotalAlerts: 14, CriticalAlerts: 3, WarningAlerts: 8, InfoAlerts: 3,
+            TotalVehicles: 5, InTransitVehicles: 2, AtDockVehicles: 1, AwaitingDispatchVehicles: 1, DelayedVehicles: 1,
+            TotalRoutes: 5, ActiveRoutes: 4, OnScheduleRoutes: 3,
+            TotalYards: 3, AvgYardOccupancyPercent: 72));
+    }
+
     public Task<IReadOnlyList<UserResponse>> GetUsersAsync(string tenantId, CancellationToken cancellationToken = default)
     {
         IReadOnlyList<UserResponse> users =
