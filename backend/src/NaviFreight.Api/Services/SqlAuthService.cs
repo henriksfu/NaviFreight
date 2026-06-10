@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -18,7 +17,7 @@ public sealed class SqlAuthService(IAuthRepository authRepository, IOptions<JwtO
     {
         var user = await authRepository.GetUserByEmailAsync(request.Email, tenantId);
 
-        if (user is null || !VerifyPassword(request.Password, user.PasswordHash))
+        if (user is null || !PasswordHasher.Verify(request.Password, user.PasswordHash))
         {
             return null;
         }
@@ -64,19 +63,5 @@ public sealed class SqlAuthService(IAuthRepository authRepository, IOptions<JwtO
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-
-    private static bool VerifyPassword(string password, string storedHash)
-    {
-        var candidateHash = HashPassword(password);
-        return CryptographicOperations.FixedTimeEquals(
-            Encoding.UTF8.GetBytes(candidateHash),
-            Encoding.UTF8.GetBytes(storedHash));
-    }
-
-    private static string HashPassword(string password)
-    {
-        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
-        return Convert.ToHexString(bytes).ToLowerInvariant();
     }
 }

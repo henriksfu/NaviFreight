@@ -1,22 +1,22 @@
 -- Seed demo user passwords.
--- Hashes are SHA-256 (lowercase hex) of the demo passwords:
+-- Hashes are bcrypt (work factor 12) of the demo passwords:
 --   Morgan Ellis  →  demo@Admin1
 --   Priya Shah    →  demo@Disp1
 --   Darius Cole   →  demo@Yard1
 --
--- Regenerate:  printf '%s' "<password>" | shasum -a 256
+-- Regenerate: BCrypt.Net.BCrypt.HashPassword("<password>", 12)
 
 UPDATE dbo.Users
-SET PasswordHash = 'd90bd915b31118219874647d0ebaef274a359fad528dc0942ecd3506b9cc039d'
+SET PasswordHash = '$2a$12$MFLfkBBc6cuy86Kn8CMFq.niD5ajgkItCIUs/9EZ1jvMZq2Fd0hVS'
 WHERE EmailAddress = 'morgan.ellis@atlasmeridian.example'
   AND TenantId = 'tenant-demo';
 
 UPDATE dbo.Users
-SET PasswordHash = '22c1fafcc463eb1247aef9914baaa1dae0a985a2979fe63ae8327224f4ba928c'
+SET PasswordHash = '$2a$12$ZWlwwEtOnQuTjNRlq8npI.JoU5gWi9c8c4hIUYM.PB6RtqXwBsEDW'
 WHERE EmailAddress = 'priya.shah@atlasmeridian.example'
   AND TenantId = 'tenant-demo';
 
 UPDATE dbo.Users
-SET PasswordHash = '824894a8891f45a5ae560d0292986b2f9ee09f764a4b08dfb6b90e447cded838'
+SET PasswordHash = '$2a$12$REhXC21XJV1pbM7oVDv40OdWSWEEt.ItL8yGoyA7bwaMRZ46zkj8O'
 WHERE EmailAddress = 'darius.cole@atlasmeridian.example'
   AND TenantId = 'tenant-demo';

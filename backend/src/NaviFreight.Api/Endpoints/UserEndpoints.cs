@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using NaviFreight.Api.Extensions;
 using NaviFreight.Api.Models;
@@ -35,7 +33,7 @@ public static class UserEndpoints
             if (errors.Count > 0) return Results.ValidationProblem(errors);
 
             var tenantId = ctx.GetTenantContext().TenantId;
-            var hash = HashPassword(req.Password);
+            var hash = PasswordHasher.Hash(req.Password);
             var created = await svc.CreateUserAsync(tenantId, req, hash, ct);
             return Results.Created($"/api/users/{created.UserId}", created);
         });
@@ -51,7 +49,7 @@ public static class UserEndpoints
             if (errors.Count > 0) return Results.ValidationProblem(errors);
 
             var tenantId = ctx.GetTenantContext().TenantId;
-            var newHash = string.IsNullOrWhiteSpace(req.NewPassword) ? null : HashPassword(req.NewPassword);
+            var newHash = string.IsNullOrWhiteSpace(req.NewPassword) ? null : PasswordHasher.Hash(req.NewPassword);
             var updated = await svc.UpdateUserAsync(tenantId, userId, req, newHash, ct);
             return updated is null ? Results.NotFound() : Results.Ok(updated);
         });
@@ -79,12 +77,6 @@ public static class UserEndpoints
         });
 
         return app;
-    }
-
-    private static string HashPassword(string password)
-    {
-        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
-        return Convert.ToHexString(bytes).ToLowerInvariant();
     }
 
     private static Dictionary<string, string[]> ValidateCreate(CreateUserRequest req)

@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -26,7 +25,7 @@ public sealed class InMemoryAuthService : IAuthService
             u.Email.Equals(request.Email, StringComparison.OrdinalIgnoreCase) &&
             (tenantId is null || u.TenantId == tenantId));
 
-        if (user is null || !VerifyPassword(request.Password, user.PasswordHash))
+        if (user is null || !PasswordHasher.Verify(request.Password, user.PasswordHash))
             return Task.FromResult<LoginResponse?>(null);
 
         var expiry = DateTime.UtcNow.AddMinutes(_jwt.ExpiryMinutes);
@@ -78,33 +77,23 @@ public sealed class InMemoryAuthService : IAuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    private static bool VerifyPassword(string password, string storedHash)
-    {
-        var candidateHash = HashPassword(password);
-        // FixedTimeEquals requires equal-length spans — SHA-256 hex is always 64 chars.
-        return CryptographicOperations.FixedTimeEquals(
-            Encoding.UTF8.GetBytes(candidateHash),
-            Encoding.UTF8.GetBytes(storedHash));
-    }
-
-    private static string HashPassword(string password)
-    {
-        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
-        return Convert.ToHexString(bytes).ToLowerInvariant();
-    }
-
+    // Pre-computed bcrypt hashes (work factor 12) for demo passwords.
+    // Regenerate: BCrypt.Net.BCrypt.HashPassword("<password>", 12)
     private static IReadOnlyList<UserIdentity> BuildSeedUsers() =>
     [
         new(1, "tenant-demo",
             "morgan.ellis@atlasmeridian.example", "Morgan Ellis",
-            "Tenant Admin", HashPassword("demo@Admin1")),
+            "Tenant Admin",
+            "$2a$12$MFLfkBBc6cuy86Kn8CMFq.niD5ajgkItCIUs/9EZ1jvMZq2Fd0hVS"),
 
         new(2, "tenant-demo",
             "priya.shah@atlasmeridian.example", "Priya Shah",
-            "Dispatcher", HashPassword("demo@Disp1")),
+            "Dispatcher",
+            "$2a$12$ZWlwwEtOnQuTjNRlq8npI.JoU5gWi9c8c4hIUYM.PB6RtqXwBsEDW"),
 
         new(3, "tenant-demo",
             "darius.cole@atlasmeridian.example", "Darius Cole",
-            "Yard Manager", HashPassword("demo@Yard1"))
+            "Yard Manager",
+            "$2a$12$REhXC21XJV1pbM7oVDv40OdWSWEEt.ItL8yGoyA7bwaMRZ46zkj8O")
     ];
 }

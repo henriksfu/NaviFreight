@@ -11,7 +11,7 @@ A multi-tenant SaaS platform for enterprise freight and logistics operations. Na
 | Frontend | Angular 20 (standalone components, signals) |
 | Backend | .NET 8 Minimal APIs |
 | Database | SQL Server 2022 |
-| Auth | JWT Bearer + SHA-256 password hashing |
+| Auth | JWT Bearer + bcrypt password hashing (work factor 12) |
 | Styling | IBM Plex design tokens, custom SCSS |
 | Local DB Runtime | Docker / Colima |
 
@@ -28,19 +28,18 @@ A multi-tenant SaaS platform for enterprise freight and logistics operations. Na
 - **Route Dispatch** — Route list with expandable detail. Assign multiple vehicles to a route, unassign per vehicle. Create, update, and delete routes.
 - **Alerts** — Status-tabbed alert feed (Active, Acknowledged, Resolved, Closed). One-click acknowledge, inline resolve with notes, reopen, reassign owner. Severity filtering (Critical, Warning, Info).
 - **Multi-tenancy** — All API requests scoped to tenant via `X-Tenant-Id` header. SQL queries filter by `TenantId` throughout.
-- **Real database** — SQL Server 2022 via Docker. Idempotent schema migrations, full demo seed data, 51 stored procedures covering all operations.
+- **Real database** — SQL Server 2022 via Docker. Idempotent schema migrations, full demo seed data, 59 stored procedures covering all operations.
 - **Global Error Handling** — HTTP interceptor catches 401/403/5xx and network errors. Toast notifications render in the bottom-right corner with auto-dismiss. 401s trigger automatic logout and redirect to login.
-- **User Management** — Tenant Admin–only page to list, create, edit, deactivate, and reactivate users within the tenant. Role assignment (Tenant Admin / Dispatcher / Yard Manager), optional password reset on edit. Full backend CRUD via `/api/users` with SHA-256 password hashing.
+- **User Management** — Tenant Admin–only page to list, create, edit, deactivate, and reactivate users within the tenant. Role assignment (Tenant Admin / Dispatcher / Yard Manager), optional password reset on edit. Full backend CRUD via `/api/users` with bcrypt password hashing.
 - **Settings Page** — Editable tenant configuration split into two cards: Tenant Profile (brand name, operational region, header mapping) and Dispatch Rules (auto-flag delay threshold, dock recompute interval, escalation window). Saves each section independently with parallel PUT requests. Backend upserts settings via `/api/settings/tenant/{key}`.
 - **Reports Page** — Operations analytics with quick-range selector (7d / 30d / 90d / custom date range). KPI band showing total alerts, fleet size, on-time route percentage, and average yard occupancy. Bar charts for alerts by severity and fleet by status. Performance snapshot grid. All metrics served by a single `/api/reports/summary` endpoint backed by a 4-result-set stored procedure.
+- **Pagination** — Server-side pagination on all list endpoints (fleet, drivers, routes, alerts, users). `PagedResponse<T>` contract with `OFFSET/FETCH` in SQL and smart ellipsis `PaginationComponent` in Angular.
+- **CI/CD Pipeline** — GitHub Actions with separate backend (dotnet build + test) and frontend (ng build production) jobs triggered on push and pull request to main/master.
 
 ### In Progress / Planned
 - **Real-time Updates** — SignalR integration for live fleet position and alert push.
-- **Pagination** — Fleet, routes, and alerts are currently unbounded lists.
-- **Password Security Upgrade** — SHA-256 is dev-only. Production requires bcrypt or Argon2.
 - **Azure Deployment** — Infrastructure scaffolding exists in `infra/azure/`. App Service + Azure SQL deployment not yet wired.
 - **End-to-End Tests** — Playwright test suite planned.
-- **CI/CD Pipeline** — GitHub Actions workflows for build, test, and deploy.
 
 ---
 
