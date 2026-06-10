@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, inject, OnInit, signal
+  ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit, signal
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -39,6 +39,7 @@ const RULE_KEYS = [
 export class SettingsPageComponent implements OnInit {
   private readonly http  = inject(HttpClient);
   private readonly toast = inject(ToastService);
+  private readonly cdr   = inject(ChangeDetectorRef);
 
   protected readonly isLoading = signal(true);
   protected readonly error     = signal<string | null>(null);
@@ -59,6 +60,7 @@ export class SettingsPageComponent implements OnInit {
       this.error.set('Failed to load settings.');
     } finally {
       this.isLoading.set(false);
+      this.cdr.markForCheck();
     }
   }
 

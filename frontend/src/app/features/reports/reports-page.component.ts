@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, inject, OnInit, signal, computed
+  ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit, signal, computed
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
@@ -28,6 +28,7 @@ type QuickRange = '7d' | '30d' | '90d' | 'custom';
 })
 export class ReportsPageComponent implements OnInit {
   private readonly http = inject(HttpClient);
+  private readonly cdr  = inject(ChangeDetectorRef);
 
   protected readonly isLoading   = signal(true);
   protected readonly error       = signal<string | null>(null);
@@ -99,6 +100,7 @@ export class ReportsPageComponent implements OnInit {
       this.error.set('Failed to load report data.');
     } finally {
       this.isLoading.set(false);
+      this.cdr.markForCheck();
     }
   }
 
