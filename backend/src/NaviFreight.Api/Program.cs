@@ -92,6 +92,9 @@ builder.Services.AddScoped<IAuthService>(sp =>
 var app = builder.Build();
 
 // ── Middleware pipeline ───────────────────────────────────────────────────────
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseCors("AllowAngular");
 app.UseAuthentication();
 app.UseMiddleware<TenantContextMiddleware>();
@@ -117,5 +120,8 @@ app.MapRouteEndpoints();
 app.MapAlertEndpoints();
 app.MapReportEndpoints();
 app.MapSettingsEndpoints();
+
+// Fallback to Angular SPA for all non-API routes
+app.MapFallbackToFile("index.html").AllowAnonymous();
 
 app.Run();
